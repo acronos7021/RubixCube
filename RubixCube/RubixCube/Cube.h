@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Block.h"
+#include "Enums.h"
 
 /*********************************************************************
 This class is intended to model a Rubix cube.  It keeps track of the current state, and it
@@ -8,7 +9,7 @@ allows the cube to be manipulated.  In order to facilitate as robust an AI to so
 cube as possible, it needs to be as fast as I can possibly make it.  Many design decisions 
 are a tradeoff between readability and speed.  In this case I mostly went with speed.
 
-Moves - this is a single rotation of one of the faces of the cube.
+Moves - this is a single rotation of one of the faces of the cube.  It is defined in "Enums.h"
 
 Orientation - Each block has a home position which is how it would sit in a solved cube.  The orientation
 is the direction the top of the block would be facing if it were in it's home position.  So a block in
@@ -26,19 +27,6 @@ all of the transfer functions to be calculated ahead of time.
 
 *********************************************************************/
 
-// describes the direction the block is facing from it's home position
-enum Orientation {top,bottom,left,right,front,back};
-// the color for each face in the home position respectively
-enum Color {blue,green,orange,red,white,yellow};
-// the possible positions of the blocks.  Organized as [height][width][depth]
-enum Positions {topLeftFront,topLeftMiddle,topLeftBack,
-				topMiddleFront,topMiddleBack,
-				topRightBack,topRightMiddle,topRightFront,				
-				middleLeftFront,middleLeftBack,middleRightBack,middleRightFront,
-				bottomLeftFront,bottomLeftMiddle,bottomLeftBack,
-				bottomMiddleFront, bottomMiddleBack,
-				bottomRightBack,bottomRightMiddle,bottomRightFront};
-
 class Cube
 {
 public:
@@ -47,16 +35,6 @@ public:
 	Cube(void);
 	~Cube(void);
 	Cube(Cube* cb);
-
-	// the basic moves for the faces of the cube
-	enum Moves {topClockwise,topCounterClockwise,
-			   bottomClockwise,bottomCounterClockwise,
-			   rightClockwise,rightCounterClockwise,
-			   leftClockwise,leftCounterClockwise,
-			   frontClockwise,frontCounterClockwise,
-			   backClockwise,backCounterClockwise};
-
-
 
 	// copys the state of the referenced cube into this one.
 	void clone(Cube* cb);
@@ -67,9 +45,10 @@ public:
 	// returns the number of blocks that are in the correct position and orientation
 	int solved();
 	// Adds the specified block to the cube in the specified position
-	void addBlock(Color top, Color bottom, Color left, Color right, Color front, Color back);
-	// Checks to make sure this cube has all of the blocks filled in and ready.  Returns an
-	// exception that lists any blocks that are missing if there are.
+	void addBlock(Positions position, Color top, Color bottom, Color left, Color right, 
+		Color front, Color back);
+	// Checks to make sure this cube has all of the blocks filled in and ready.  If there are any
+	// blocks missing, it returns an exception that lists them.
 	bool checkCube();
 
 	// scans all of the transfer functions to find the one that brings the cube the
@@ -85,14 +64,35 @@ private:
 	// when the first cube is instantiated allows very fast access to the transfer functions.
 	struct TransferFunctions
 	{
-		int start,end;  // stores the start and end locations in the transfer array for this function
+		// This lists how the blocks move as a result of the function.  It jumps to the
+		// end state of the cube after all of the face Moves have been made.
+		int startBlockMoves,endBlockMoves; 
+		// This is the list of faces moves to create the function
+		int startFaceMoves,endFaceMoves; 
 	};
-	// These are initialized once and shared among all of the instances of Cube
-	static char* transferMoves;
-	static TransferFunctions* transferFunctions;
+
+	static char* transferBlockMoves; //lists how the individual blocks move in a transfer
+	static char* transferFaceMoves; //lists the face Moves that would be required to do the transfer
+	static TransferFunctions* transferFunctions; // index for the previous two lists
+
+	// this stores the current status of a specific block.
+	struct BlockStatus
+	{
+		Positions pos;
+		Orientation ori;
+	};
+
+	// The list of the current state of all of the blocks
+	BlockStatus blockStatus[20];
+
+	// Stores the data on the 20 blocks that make up the moving portion of the cube.  This is not
+	// the current state of the cube, but rather the building blocks needed to portray the current state.
 	static Block* blocks;
 
-	void initTransferFunctions();
+	// These are initialized once and shared among all of the instances of Cube trough the above
+	// static variables.
+	static bool initialized; // the initial value is set to false in the Cube.cpp file
 	void initBlocks();
+	void initTransferFunctions();
 
 };
