@@ -38,13 +38,14 @@ public:
 
 	// copys the state of the referenced cube into this one.
 	void clone(Cube* cb);
-	// Executes the specified move on this cube.
+	// Executes the specified move/transfer function on this cube.
 	void move(Moves mv);
 	// returns true if this Cube and the refrenced one are the same.
 	bool equals(Cube* cb);
 	// returns the number of blocks that are in the correct position and orientation
 	int solved();
-	// Adds the specified block to the cube in the specified position
+	// Adds the specified block to the cube in the specified position.  It checks to make
+	// sure no block is added twice and that the block actually exists on a Rubix cube.
 	void addBlock(Positions position, Color top, Color bottom, Color left, Color right, 
 		Color front, Color back);
 	// Checks to make sure this cube has all of the blocks filled in and ready.  If there are any
@@ -66,12 +67,18 @@ private:
 	{
 		// This lists how the blocks move as a result of the function.  It jumps to the
 		// end state of the cube after all of the face Moves have been made.
-		int startBlockMoves,endBlockMoves; 
+		unsigned int startBlockMoves,endBlockMoves; 
 		// This is the list of faces moves to create the function
-		int startFaceMoves,endFaceMoves; 
+		unsigned int startFaceMoves,endFaceMoves; 
 	};
 
-	static char* transferBlockMoves; //lists how the individual blocks move in a transfer
+	struct TransferMoves
+	{
+		unsigned char position;
+		unsigned char orientation;
+	};
+
+	static TransferMoves* transferBlockMoves; //lists how the individual blocks move in a transfer
 	static char* transferFaceMoves; //lists the face Moves that would be required to do the transfer
 	static TransferFunctions* transferFunctions; // index for the previous two lists
 
@@ -80,6 +87,14 @@ private:
 	{
 		Positions pos;
 		Orientation ori;
+
+		bool equals(BlockStatus bs)
+		{
+			if ((pos == bs.pos)&&(ori == bs.ori))
+				return true;
+			else
+				return false;
+		}
 	};
 
 	// The list of the current state of all of the blocks

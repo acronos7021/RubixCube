@@ -1,6 +1,7 @@
 #pragma once
 
 // describes the direction the block is facing from it's home position
+
 enum Orientation {top,bottom,left,right,front,back,invalid};
 
 // the color for each face in the home position respectively
@@ -22,3 +23,4 @@ enum Moves {topClockwise,topCounterClockwise,
 			leftClockwise,leftCounterClockwise,
 			frontClockwise,frontCounterClockwise,
 			backClockwise,backCounterClockwise};
+
