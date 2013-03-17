@@ -118,10 +118,11 @@ struct tector
 // sorted in excel.
 void FindAllOrientations()
 {
-	std::ofstream resultFile;
-	resultFile.open("OrientationList.cvs");
+	//std::ofstream resultFile;
+	//resultFile.open("OrientationList.cvs");
 
-	resultFile << "xNum,yNum,zNum,tVector,fVector" << std::endl;
+//	resultFile << "xNum,yNum,zNum,tVector,fVector" << std::endl;
+	std::cout << "xNum,yNum,zNum,tVector,fVector" << std::endl;
 	int xAxis,yAxis,zAxis;
 	for (xAxis=0; xAxis <= 3; ++xAxis)
 		for (yAxis=0; yAxis <=3; ++yAxis)
@@ -132,10 +133,34 @@ void FindAllOrientations()
 				for (int xNum=0;xNum<xAxis;++xNum) {tVector.incXaxis();fVector.incXaxis();}
 				for (int yNum=0;yNum<yAxis;++yNum) {tVector.incYaxis();fVector.incYaxis();}
 				for (int zNum=0;zNum<zAxis;++zNum) {tVector.incZaxis();fVector.incZaxis();}
-				resultFile << xAxis << "," << yAxis << "," << zAxis << "," << tVector.toString() 
-					<< "," << fVector.toString() << std::endl;
+
+				// Test if rotation in a different order changes the results
+
+				tector tVector2 = tector(0,1,0);  // setup the top tector
+				tector fVector2 = tector(0,0,1);  // setup the front tector
+				for (int yNum=0;yNum<yAxis;++yNum) {tVector2.incYaxis();fVector2.incYaxis();}
+				for (int xNum=0;xNum<xAxis;++xNum) {tVector2.incXaxis();fVector2.incXaxis();}
+				for (int zNum=0;zNum<zAxis;++zNum) {tVector2.incZaxis();fVector2.incZaxis();}
+
+				tector tVector3 = tector(0,1,0);  // setup the top tector
+				tector fVector3 = tector(0,0,1);  // setup the front tector
+				for (int zNum=0;zNum<zAxis;++zNum) {tVector3.incZaxis();fVector3.incZaxis();}
+				for (int yNum=0;yNum<yAxis;++yNum) {tVector3.incYaxis();fVector3.incYaxis();}
+				for (int xNum=0;xNum<xAxis;++xNum) {tVector3.incXaxis();fVector3.incXaxis();}
+
+
+				std::cout << xAxis << "," << yAxis << "," << zAxis << "," << 
+					tVector.toString()  << "," << fVector.toString() << "," << 
+					tVector2.toString()  << "," << fVector2.toString() << "," << 					
+					tVector3.toString()  << "," << fVector3.toString() << std::endl;
 			}
-	resultFile.close();
+	//resultFile.close();
 	
 }
+
+/*************** Damn! order does matter ***********************
+***  The only good news is that physical measurements do     ***
+***  confirm that the above function does correctly rotate   ***
+***  the cube                                                ***
+***************************************************************/
 
