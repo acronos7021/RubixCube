@@ -23,8 +23,6 @@ int main(void)
 	system("pause");
 }
 
-// I'm making a change here to test that this will actually publish to Alex
-
 // I'm confused about orientation.
 // there are 6 faces.
 // 2 face vectors are required to represent an orientation
