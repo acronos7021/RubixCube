@@ -74,8 +74,8 @@ private:
 
 	struct TransferMoves
 	{
-		unsigned char position;
-		unsigned char orientation;
+		byte position;
+		byte orientation;
 	};
 
 	static TransferMoves* transferBlockMoves; //lists how the individual blocks move in a transfer
