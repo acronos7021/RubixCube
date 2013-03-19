@@ -30,14 +30,31 @@ int main(void)
 	for (int yNum=0;yNum<1;++yNum) {tManualVector.incYaxis();fManualVector.incYaxis();}
 	for (int zNum=0;zNum<3;++zNum) {tManualVector.incZaxis();fManualVector.incZaxis();}
 	// rotate testBlock the same way
-	byte newKey = testBlock.rotate(0,testBlock.getRKey(2,1,3));
-	orientVector testOrient = testBlock.getOrientation(newKey);
+	rByte newKey = testBlock.rotate(0,testBlock.getRKey(2,1,3));
+	orientVector testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
 	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
 	{
-		// it worked ... or not
+		std::cout << "they match for simple case";
+	}
+	else
+	{
+		std::cout << "they don't match for simple case";
 	}
 
-
+	// make a messy rotation again
+	for (int xNum=0;xNum<1;++xNum) {tManualVector.incXaxis();fManualVector.incXaxis();}
+	for (int yNum=0;yNum<3;++yNum) {tManualVector.incYaxis();fManualVector.incYaxis();}
+	for (int zNum=0;zNum<2;++zNum) {tManualVector.incZaxis();fManualVector.incZaxis();}
+	rByte newKey2 = testBlock.rotate(newKey,testBlock.getRKey(1,3,2));
+	testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
+	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
+	{
+		std::cout << "they match for hard case";
+	}
+	else
+	{
+		std::cout << "they don't match for hard case";
+	}
 
 	system("pause");
 }

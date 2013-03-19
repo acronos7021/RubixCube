@@ -183,9 +183,6 @@ private:  // make sure the block is created with the proper constructor
 	static roByte roByteConvert[256];
 	void createNormalizers();
 
-
-
-
 public:
 	~Block(void);
 	Block(Positions home,Faces f);

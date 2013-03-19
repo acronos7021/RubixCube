@@ -132,6 +132,11 @@ void Block::createNormalizers()
 		roByteConvert[i]=0xFF;
 	}
 
+	// used for debugging and understanding what is going on.
+	int normalizerCount=0;
+	int oVectorCount=0;
+	int oVectorChangeCount=0;
+
 	byte xAxis,yAxis,zAxis;
 	for (xAxis=0; xAxis <= 3; ++xAxis)
 	{
@@ -154,6 +159,7 @@ void Block::createNormalizers()
 				// key for every orientation. (64 possible orientation paths simplified to 
 				// the 24 possible orientations.
 				normalizer[rIndex]=rIndex; 
+				normalizerCount++;
 
 				// get orientation key
 				byte oIndex = getOKey(tVector,fVector);
@@ -161,6 +167,7 @@ void Block::createNormalizers()
 				{
 					// It's empty so load it with the current rIndex
 					oVector[oIndex]=rIndex;
+					oVectorCount++;
 				}
 				else
 				{
@@ -168,11 +175,15 @@ void Block::createNormalizers()
 					// calculate the previous rotations
 					int tempX,tempY,tempZ;
 					getRotations(oVector[oIndex],tempX,tempY,tempZ);
-					if ((tempX + tempY + tempZ) <= (xAxis + yAxis + zAxis))
+					if ((xAxis + yAxis + zAxis) < (tempX + tempY + tempZ))
 					{
-						// the new rotation combination requires fewer rotations than the previous
-						// so change to the new version
+						// paraphrased
+						// if ((current rotations needed) < (old rotations needed))
+						//		update oVector with the new improved version
+						// the goal is to only store the best 24 rotation combinations everything
+						// else should come back to these 24
 						oVector[oIndex]=rIndex;
+						oVectorChangeCount++;
 					}
 				}
 				roByteConvert[rIndex]=oIndex;
@@ -180,12 +191,19 @@ void Block::createNormalizers()
 		}
 	}
 
+	int normalizerChanges=0;
 	// scan through each normalizer and fill it with the solution that requires the minimum
-	// number of rotations.
+	// number of rotations.  There should be 40 adjustments since 64-24=40
 	for (int i=0;i<256;i++)
 	{
-		if (normalizer[i]==0xFF) break;
-		normalizer[i]=oVector[roByteConvert[i]];  // oVector was already loaded with the minimum value above
+		if (normalizer[i]!=0xFF)  // if it's 0xFF it is not used
+		{
+			if (normalizer[i] != oVector[roByteConvert[i]])
+			{
+				normalizer[i]=oVector[roByteConvert[i]];  // oVector was already loaded with the minimum value above
+				normalizerChanges++;
+			}
+		}
 	}
 }
 
