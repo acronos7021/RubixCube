@@ -1,5 +1,6 @@
 #include "Block.h"
 
+
 bool Block::initialized = false;
 rByte Block::normalizer[256];
 oByte Block::oVector[256];
@@ -9,6 +10,7 @@ Block::Block(void)
 {
 	initialized=true;
 	createNormalizers();
+	loaded=false;
 }
 
 
@@ -20,9 +22,26 @@ Block::Block(Positions home,Faces f)
 {
 	initialized=true;
 	createNormalizers();
+	initBlock(home,f);
+	loaded=false;
+}
+
+void Block::initBlock(Positions home,Faces f)
+{
 	homePosition=home;
+	homeOrientation=orientVector(top,front);
 	faces = f;
 }
+
+// returns true and assigns that orientation if the there is an orientation that matches this face
+
+bool Block::loadBlock(Positions currPos, Faces f)
+{
+	// see if this block 
+	//loaded=true;
+	return false;
+}
+
 
 //// returns '-1' if there is no orientation that matches the color pattern.
 //int Block::getOrientation(Faces f)
@@ -61,6 +80,19 @@ byte Block::rotate(rByte currentVector, rByte offsetVector)
 	return currentVector;
 }
 
+bool Block::equalOrientation(Block in)
+{
+	return currentOrientation==in.currentOrientation;
+}
+
+bool Block::isHome()
+{
+	if ((currentPosition==homePosition) && (currentOrientation==homeOrientation))
+		return true;
+	else
+		return false;
+}
+
 // this takes a series of rotations and converts it to the key used by normalizer
 // and rotate.  It loads the rotations for each direction into a single char
 // that can be operated on with standard hardware math functions like "add"
@@ -68,46 +100,46 @@ byte Block::rotate(rByte currentVector, rByte offsetVector)
 rByte Block::getRKey(int xRotations, int yRotations, int zRotations)
 {
 	//xRotations leave the same
+	xRotations = xRotations << 6;  //shift left 6 bits
 	yRotations = yRotations << 3;  //shift left 3 bits 
-	zRotations = zRotations << 6;  //shift left 6 bits
 	return xRotations | yRotations | zRotations; //combine the three together in one byte using bitwise or
 }
 
 // reverses getRKey
-void Block::getRotations(rByte key, int &xRotations, int &yRotations, int &zRotations)
+void Block::getRotations(rByte rKey, int &xRotations, int &yRotations, int &zRotations)
 {
-	xRotations = key & 0x03; // 00000011
-	yRotations = key & 0x18; // 00011000
-	zRotations = key & 0xC0; // 11000000
+	xRotations = rKey & 0xC0; // 11000000
+	yRotations = rKey & 0x18; // 00011000
+	zRotations = rKey & 0x03; // 00000011
+	xRotations = xRotations >> 6;
 	yRotations = yRotations >> 3;
-	zRotations = zRotations >> 6;
 }
 
 // there are only 6 faces or vectors in a cube.  Using the same method as above
 // we can create a hash on the two vectors that are used to describe the 24 orientations
-oByte Block::getOKey(rotator tVector, rotator fVector)
+oByte Block::getOKey(Rotator tVector, Rotator fVector)
 {
-	Orientation top = tVector.getOrientation();
-	Orientation front = fVector.getOrientation();
-	oByte tKey = (oByte) top;  // converts the orientation enum to a number (0-6)
-	oByte fKey = (oByte) front; // converts the orientation enum to a number (0-6)
+	Orientation oTop = tVector.getOrientation();
+	Orientation oFront = fVector.getOrientation();
+	oByte tKey = (oByte) oTop;  // converts the orientation enum to a number (0-6)
+	oByte fKey = (oByte) oFront; // converts the orientation enum to a number (0-6)
 	// each key takes up three bits since 111 = 7
-	fKey=fKey << 3; // shifts the fKey to the left digits
+	tKey=tKey << 4; // shifts the fKey to the left digits
 	return tKey | fKey;  // combine the two together in one byte using bitwise or
 }
 
-oByte Block::getOKey(rByte RKey)
+oByte Block::getOKey(rByte rKey)
 {
-	return roByteConvert[RKey];
+	return roByteConvert[rKey];
 }
 
-orientVector Block::getOrientation(oByte key)
+orientVector Block::getOrientation(oByte oKey)
 {
-	oByte tKey = key & 0x07; // 00000111
-	oByte fKey = key & 0x38; // 00111000
-	fKey = fKey >> 3;
-	rotator tVector(tKey);
-	rotator fVector(fKey);
+	oByte tKey = oKey & 0xF0; // 11110000
+	oByte fKey = oKey & 0x0F; // 00001111
+	tKey = tKey >> 4;
+	Rotator tVector(tKey);
+	Rotator fVector(fKey);
 	return orientVector(tVector,fVector);
 }
 
@@ -118,7 +150,7 @@ orientVector Block::getOrientation(oByte key)
 // 3 = one rotation counterclockwise 
 
 // since order matters, all orientation changes are xAxis then yAxis then zAxis
-// This function resolves all orientations and output them to a the normalizer array. This allows for
+// This function resolves all orientations and outputs them to a normalizer array. This allows for
 // a quick way to simplify any rotation path to it's simplest version and also restricts
 // the possible rotations to only 24.  It converts the 64 paths into 24 orientations by creating
 // a sort of hash.
@@ -145,8 +177,8 @@ void Block::createNormalizers()
 			for (zAxis=0; zAxis <=3; ++zAxis)
 			{
 				// get rotation
-				rotator tVector = rotator(0,1,0);  // setup the top rotator
-				rotator fVector = rotator(0,0,1);  // setup the front rotator
+				Rotator tVector = Rotator(0,1,0);  // setup the top rotator
+				Rotator fVector = Rotator(0,0,1);  // setup the front rotator
 				for (int xNum=0;xNum<xAxis;++xNum) {tVector.incXaxis();fVector.incXaxis();}
 				for (int yNum=0;yNum<yAxis;++yNum) {tVector.incYaxis();fVector.incYaxis();}
 				for (int zNum=0;zNum<zAxis;++zNum) {tVector.incZaxis();fVector.incZaxis();}

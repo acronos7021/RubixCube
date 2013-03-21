@@ -31,38 +31,38 @@ enum Moves {topClockwise,topCounterClockwise,
 class Faces
 {
 public:
-	Color top, bottom, left, right, front, back;
+	Color topColor, bottomColor, leftColor, rightColor, frontColor, backColor;
 	Faces() {};
 	Faces(Color to, Color bo, Color le, Color ri, Color fr, Color ba)
 	{
-		top=to;
-		bottom = bo;
-		left = le;
-		right = ri;
-		front = fr;
-		back = ba;
+		topColor=to;
+		bottomColor = bo;
+		leftColor = le;
+		rightColor = ri;
+		frontColor = fr;
+		backColor = ba;
 	}
 
 	Faces copy()
 	{
 		Faces ret;
-		ret.top=top;
-		ret.bottom = bottom;
-		ret.left = left;
-		ret.right = right;
-		ret.front = front;
-		ret.back = back;
+		ret.topColor=topColor;
+		ret.bottomColor = bottomColor;
+		ret.leftColor = leftColor;
+		ret.rightColor = rightColor;
+		ret.frontColor = frontColor;
+		ret.backColor = backColor;
 		return ret;
 	}
 
 	bool equal(Faces f)
 	{
-		if ((top == f.top)&&
-				(bottom == f.bottom)&&
-				(left == f.left)&&
-				(right == f.right)&&
-				(front == f.front)&&
-				(back == f.back))
+		if ((topColor == f.topColor)&&
+				(bottomColor == f.bottomColor)&&
+				(leftColor == f.leftColor)&&
+				(rightColor == f.rightColor)&&
+				(frontColor == f.frontColor)&&
+				(backColor == f.backColor))
 			return true;
 		else
 			return false;

@@ -65,11 +65,13 @@
     <ClInclude Include="Block.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Enums.h" />
+    <ClInclude Include="Rotator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Rotator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

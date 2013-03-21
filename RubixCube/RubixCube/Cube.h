@@ -82,27 +82,27 @@ private:
 	static char* transferFaceMoves; //lists the face Moves that would be required to do the transfer
 	static TransferFunctions* transferFunctions; // index for the previous two lists
 
-	// this stores the current status of a specific block.
-	struct BlockStatus
-	{
-		Positions pos;
-		Orientation ori;
+	//// this stores the current status of a specific block.
+	//struct BlockStatus
+	//{
+	//	Positions pos;
+	//	Orientation ori;
 
-		bool equals(BlockStatus bs)
-		{
-			if ((pos == bs.pos)&&(ori == bs.ori))
-				return true;
-			else
-				return false;
-		}
-	};
+	//	bool equals(BlockStatus bs)
+	//	{
+	//		if ((pos == bs.pos)&&(ori == bs.ori))
+	//			return true;
+	//		else
+	//			return false;
+	//	}
+	//};
 
-	// The list of the current state of all of the blocks
-	BlockStatus blockStatus[20];
+	//// The list of the current state of all of the blocks
+	//Block blocks[20];
 
 	// Stores the data on the 20 blocks that make up the moving portion of the cube.  This is not
 	// the current state of the cube, but rather the building blocks needed to portray the current state.
-	static Block* blocks;
+	static Block blocks[20];
 
 	// These are initialized once and shared among all of the instances of Cube trough the above
 	// static variables.
