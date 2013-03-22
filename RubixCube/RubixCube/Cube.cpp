@@ -24,7 +24,8 @@ void Cube::initBlocks()
 {
 	// there are 20 blocks.
 	// the orientations are set to home by default
-	blocks[0].initBlock(topLeftFront,Faces(red,blue,green,none,none,none));
+	//										top,bottom,left,right,front,back
+	blocks[0].initBlock(topLeftFront,Faces(blue,none,orange,none,white,none));
 	blocks[1].initBlock(topLeftMiddle,Faces(red,blue,green,none,none,none));
 	blocks[2].initBlock(topLeftBack,Faces(red,blue,green,none,none,none));
 	blocks[3].initBlock(topMiddleFront,Faces(red,blue,green,none,none,none));

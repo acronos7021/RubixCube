@@ -6,6 +6,8 @@
 #include "Cube.h"
 #include "Rotator.h"
 
+using namespace std;
+
 /******************************************************************************
 This is used to test the Cube class.  For details on the Cube class, start
 with "Cube.h"
@@ -32,11 +34,11 @@ int main(void)
 	orientVector testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
 	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
 	{
-		std::cout << "they match for simple case";
+		std::cout << "they match for simple case" << endl;
 	}
 	else
 	{
-		std::cout << "they don't match for simple case";
+		std::cout << "they don't match for simple case"<< endl;
 	}
 
 	// make a single additional rotation
@@ -45,11 +47,11 @@ int main(void)
 	testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
 	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
 	{
-		std::cout << "they match for simple case";
+		std::cout << "they match for simple case"<< endl;
 	}
 	else
 	{
-		std::cout << "they don't match for simple case";
+		std::cout << "they don't match for simple case"<< endl;
 	}
 
 

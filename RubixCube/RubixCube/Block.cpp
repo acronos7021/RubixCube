@@ -43,6 +43,8 @@ bool Block::loadBlock(Positions currPos, Faces f)
 }
 
 
+
+
 //// returns '-1' if there is no orientation that matches the color pattern.
 //int Block::getOrientation(Faces f)
 //{
