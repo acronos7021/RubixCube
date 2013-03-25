@@ -1,32 +1,32 @@
 #include "Block.h"
 
 
-bool Block::initialized = false;
-rByte Block::normalizer[256];
-oByte Block::oVector[256];
-roByte Block::roByteConvert[256];
+bool BasicBlock::initialized = false;
+rByte BasicBlock::normalizer[256];
+rByte BasicBlock::oVector[256];
+oByte BasicBlock::roByteConvert[256];
 
-Block::Block(void)
+BasicBlock::BasicBlock(void)
 {
 	initialized=true;
 	createNormalizers();
-	loaded=false;
+	//loaded=false;
 }
 
 
-Block::~Block(void)
+BasicBlock::~BasicBlock(void)
 {
 }
 
-Block::Block(Positions home,Faces f)
+BasicBlock::BasicBlock( Positions home,Faces f)
 {
 	initialized=true;
 	createNormalizers();
 	initBlock(home,f);
-	loaded=false;
+	//loaded=false;
 }
 
-void Block::initBlock(Positions home,Faces f)
+void BasicBlock::initBlock(Positions home,Faces f)
 {
 	homePosition=home;
 	homeOrientation=orientVector(top,front);
@@ -35,24 +35,134 @@ void Block::initBlock(Positions home,Faces f)
 
 // returns true and assigns that orientation if the there is an orientation that matches this face
 
-bool Block::loadBlock(Positions currPos, Faces f)
+orientVector BasicBlock::checkBlock(Faces f)
 {
-	// see if this block 
+	// check if this face combination fits this block
+
+	// scan through each each orientation of this block to see if it matches
+	for (int i=0;i<=83;++i) // 83 is the highest oVector that is actually used
+	{
+		if (oVector[i]!=255)
+		{
+			// this vector is in use
+			orientVector o = getOrientation(oVector[i]);
+			Faces rColors = remapFaces(o); // gets the orientVector
+			if (rColors == faces)
+			{
+				// an orientation was found that matched this block
+				// so load the block
+				return o;
+			}
+		}
+	}
+	return orientVector(Rotator(top),Rotator(top)); // return an invalid orientation
+}
+
+Block BasicBlock::loadBlock(byte homeBlock,Positions p,orientVector o)
+{
 	//loaded=true;
-	return false;
+	Block b;
+	b.homeBlock=homeBlock;
+	b.orientationVector=o;
+	b.position=p;
+	return b;
+}
+
+// used by remapFaces to put each face color in place.
+Faces BasicBlock::addFaceColor(Faces &f, Orientation o, Color c)
+{
+	if (o == top) f.topColor=c;
+	if (o == bottom) f.bottomColor=c;
+	if (o == left) f.leftColor=c;
+	if (o == right) f.rightColor=c;
+	if (o == front) f.frontColor=c;
+	if (o == back) f.backColor=c;
+	return f;
+}
+
+// takes the colors of this block and rotates the block according to the selected vector  It
+// then returns the face colors as if they were in that position.
+// This doesn't actually rotate the block, it just rotates some vectors that match the block
+Faces BasicBlock::remapFaces(orientVector selVect)
+{
+	// there is probably a better way to do this, but for now I just want to get it done.
+
+	// map home vectors and assign the color to each face
+	// then rotate the vectors to the correct position
+	Rotator to = Rotator(top);
+	Rotator bo = Rotator(bottom);
+	Rotator ri = Rotator(right);
+	Rotator le = Rotator(left);
+	Rotator fr = Rotator(front);
+	Rotator ba = Rotator(back);
+
+	// rotate these vectors by the correct amount
+	int xRotations,yRotations,zRotations;
+	rByte rKey = oVector[getOKey(selVect.tVector,selVect.fVector)]; // convert the vector to a rotation
+	getRotations(rKey,xRotations,yRotations,zRotations);
+	// do rotations
+	for (;xRotations>0;xRotations--)
+	{
+		to.incXaxis();
+		bo.incXaxis();
+		ri.incXaxis();
+		le.incXaxis();
+		fr.incXaxis();
+		ba.incXaxis();
+	}
+	for (;yRotations>0;yRotations--)
+	{
+		to.incYaxis();
+		bo.incYaxis();
+		ri.incYaxis();
+		le.incYaxis();
+		fr.incYaxis();
+		ba.incYaxis();
+	}
+	for (;zRotations>0;zRotations--)
+	{
+		to.incZaxis();
+		bo.incZaxis();
+		ri.incZaxis();
+		le.incZaxis();
+		fr.incZaxis();
+		ba.incZaxis();
+	}
+	// add the face colors in the correct locations
+	Faces f;
+	addFaceColor(f,to.getOrientation(),faces.topColor);
+	addFaceColor(f,bo.getOrientation(),faces.bottomColor);
+	addFaceColor(f,ri.getOrientation(),faces.rightColor);
+	addFaceColor(f,le.getOrientation(),faces.leftColor);
+	addFaceColor(f,fr.getOrientation(),faces.frontColor);
+	addFaceColor(f,ba.getOrientation(),faces.backColor);
+	
+	return f;
 }
 
 
+bool BasicBlock::equalOrientation(Block b1, Block b2)
+{
+	return b1.orientationVector==b2.orientationVector;
+}
 
+bool BasicBlock::isHome(Block b)
+{
+	if ((b.homeBlock==homePosition) && (b.position==homePosition) && (b.orientationVector==homeOrientation))
+		return true;
+	else
+		return false;
+}
 
-//// returns '-1' if there is no orientation that matches the color pattern.
-//int Block::getOrientation(Faces f)
-//{
-//	// there are 24 orientations so we need to compare each one
-//	return -1;
-//}
+Positions BasicBlock::getHome()
+{
+	return homePosition;
+}
 
-
+Faces BasicBlock::getFaces(orientVector o)
+{
+	return faces.copy();
+}
 /****************************************************************************************************
 	There are 24 orientations.  The orientations are represented by 3 sets of 3 bits.
 	The active bits are [0]11 011 011 in a byte.  The extra zero is to leave space for the bits
@@ -71,35 +181,74 @@ bool Block::loadBlock(Positions currPos, Faces f)
 	All rotations will have to be positive.  For a negative rotation, add 3 on that axis. 
 
 ****************************************************************************************************/
-byte Block::rotate(rByte currentVector, rByte offsetVector)
+//byte Block::rotate(rByte currentVector, rByte offsetVector)
+//{
+//	// Do the rotation
+//	currentVector += offsetVector;
+//	// mask any bits that overflowed.
+//	// mask = 11011011 = 0xDB 
+//	currentVector = (currentVector & 0xDB);
+//	currentVector = normalizer[currentVector]; // converts the current orientation path to the standard one.
+//	return currentVector;
+//}
+
+void BasicBlock::rotate(Block &block, rByte offsetVector)
 {
-	// Do the rotation
-	currentVector += offsetVector;
-	// mask any bits that overflowed.
-	// mask = 11011011 = 0xDB
-	currentVector = (currentVector & 0xDB);
-	currentVector = normalizer[currentVector]; // converts the current orientation path to the standard one.
-	return currentVector;
+	int xRotations = (offsetVector >> 6) & 0x03; 
+	int yRotations = (offsetVector >> 3) & 0x03;
+	int zRotations = offsetVector & 0x03;
+	for (;xRotations>0;xRotations--) { block.orientationVector.fVector.incXaxis(); block.orientationVector.tVector.incXaxis();}
+	for (;yRotations>0;yRotations--) { block.orientationVector.fVector.incYaxis(); block.orientationVector.tVector.incYaxis();}
+	for (;zRotations>0;zRotations--) { block.orientationVector.fVector.incZaxis(); block.orientationVector.tVector.incZaxis();}
 }
 
-bool Block::equalOrientation(Block in)
+// This function does not actually rotate the block.  It just calculates the difference
+// between the current rotation and an old rotation and returns the moves that would have
+// been required to move between them.  It is called each time a new transfer function is
+// discovered to calculate what transfers to add.
+rByte BasicBlock::deRotate(orientVector oldRotationVector, orientVector newRotationVector)
 {
-	return currentOrientation==in.currentOrientation;
+	// rotate both orientVectors to to oldRotationVector home
+	// copy currentOrienation vector so that our changes don't affect this block orientation
+	//orientVector newRotationVector = currentOrientation;
+	// get rotation numbers needed to create the current rotation
+	// The oByte can be converted to the rByte which can be converted to the correct orientations
+	oByte currOByte = getOKey(newRotationVector.tVector,newRotationVector.fVector);
+	// convert oByte to rByte
+	rByte currRByte = oVector[currOByte];
+	// calculate rotations
+	int xRotations = (currRByte << 6) & 0x03;
+	int yRotations = (currRByte << 3) & 0x03;
+	int zRotations = currRByte & 0x03;
+	// do rotations in reverse order
+	for (;zRotations>0;zRotations--) 
+	{ 
+		newRotationVector.fVector.decZaxis(); newRotationVector.tVector.decZaxis();
+		oldRotationVector.fVector.decZaxis(); oldRotationVector.tVector.decZaxis();
+	}
+	for (;yRotations>0;yRotations--)
+	{ 
+		newRotationVector.fVector.decYaxis(); newRotationVector.tVector.decYaxis();
+		oldRotationVector.fVector.decYaxis(); oldRotationVector.tVector.decYaxis();
+	}
+	for (;xRotations>0;xRotations--)
+	{ 
+		newRotationVector.fVector.decXaxis(); newRotationVector.tVector.decXaxis();
+		oldRotationVector.fVector.decXaxis(); oldRotationVector.tVector.decXaxis();
+	}
+	// if it worked correctly, newRotationVector should be in it's home position.
+	// now the oldRotationVector rotation should be where it would be oriented 
+	// if it had started from home position. Now our normalizers should work directly on it.
+	oByte oldObyte = getOKey(oldRotationVector.tVector,oldRotationVector.fVector);
+	return oVector[oldObyte];  // return the rByte for the difference.
 }
 
-bool Block::isHome()
-{
-	if ((currentPosition==homePosition) && (currentOrientation==homeOrientation))
-		return true;
-	else
-		return false;
-}
 
 // this takes a series of rotations and converts it to the key used by normalizer
 // and rotate.  It loads the rotations for each direction into a single char
 // that can be operated on with standard hardware math functions like "add"
 // it is a hash function on the rotation paths
-rByte Block::getRKey(int xRotations, int yRotations, int zRotations)
+rByte BasicBlock::getRKey(int xRotations, int yRotations, int zRotations)
 {
 	//xRotations leave the same
 	xRotations = xRotations << 6;  //shift left 6 bits
@@ -108,7 +257,7 @@ rByte Block::getRKey(int xRotations, int yRotations, int zRotations)
 }
 
 // reverses getRKey
-void Block::getRotations(rByte rKey, int &xRotations, int &yRotations, int &zRotations)
+void BasicBlock::getRotations(rByte rKey, int &xRotations, int &yRotations, int &zRotations)
 {
 	xRotations = rKey & 0xC0; // 11000000
 	yRotations = rKey & 0x18; // 00011000
@@ -119,7 +268,7 @@ void Block::getRotations(rByte rKey, int &xRotations, int &yRotations, int &zRot
 
 // there are only 6 faces or vectors in a cube.  Using the same method as above
 // we can create a hash on the two vectors that are used to describe the 24 orientations
-oByte Block::getOKey(Rotator tVector, Rotator fVector)
+oByte BasicBlock::getOKey(Rotator tVector, Rotator fVector)
 {
 	Orientation oTop = tVector.getOrientation();
 	Orientation oFront = fVector.getOrientation();
@@ -130,12 +279,12 @@ oByte Block::getOKey(Rotator tVector, Rotator fVector)
 	return tKey | fKey;  // combine the two together in one byte using bitwise or
 }
 
-oByte Block::getOKey(rByte rKey)
+oByte BasicBlock::getOKey(rByte rKey)
 {
 	return roByteConvert[rKey];
 }
 
-orientVector Block::getOrientation(oByte oKey)
+orientVector BasicBlock::getOrientation(oByte oKey)
 {
 	oByte tKey = oKey & 0xF0; // 11110000
 	oByte fKey = oKey & 0x0F; // 00001111
@@ -156,7 +305,7 @@ orientVector Block::getOrientation(oByte oKey)
 // a quick way to simplify any rotation path to it's simplest version and also restricts
 // the possible rotations to only 24.  It converts the 64 paths into 24 orientations by creating
 // a sort of hash.
-void Block::createNormalizers()
+void BasicBlock::createNormalizers()
 {
 	// clear the normalizer and oVector lists so the empty selection will show
 	for (int i=0;i<256;i++)

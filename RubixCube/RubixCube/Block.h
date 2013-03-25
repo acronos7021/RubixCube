@@ -5,43 +5,63 @@
 #include "Enums.h"
 #include "Rotator.h"
 
-
-
-
-class Block
+/****************************************************************
+Block is used to store state of an individual block.  It doesn't
+have any functions attached to it because I need it to be small
+and fast.  The functions to manipulate Block are in BasicBlock
+****************************************************************/
+struct Block
 {
-private:  // make sure the block is created with the proper constructor
+	byte homeBlock;
+	orientVector orientationVector;
+	Positions position;
+};
+
+
+class BasicBlock
+{
+private:  
 	static bool initialized;
 	static rByte normalizer[256];
-	static oByte oVector[256];
-	static roByte roByteConvert[256];
+	static rByte oVector[256];
+	static oByte roByteConvert[256];
 	void createNormalizers();
 
-	Positions homePosition;
-	orientVector homeOrientation;
-	Positions currentPosition;
-	orientVector currentOrientation;
+
+	//Positions currentPosition;
+	//orientVector currentOrientation;
 	Faces faces;
 
-
 public:
-	Block(void);
-	~Block(void);
-	Block(Positions home,Faces f);
+	BasicBlock(void);
+	~BasicBlock(void);
+	BasicBlock(Positions home,Faces f);
 	void initBlock(Positions home, Faces f);
-	bool loadBlock(Positions currPos, Faces f);
-	bool loaded; // is true if the block has been assigned.  If the block is just default initialized
+	Positions homePosition;
+	orientVector homeOrientation;
+	orientVector checkBlock(Faces f);
+	Block loadBlock(byte homeBlock,Positions p,orientVector o);
+	//bool loaded; // is true if the block has been assigned.  If the BasicBlock is just default initialized
 				 // it returns false
 
 	//Rotator currentRotation;  // defaults to homePosition on creation
 
 	bool equalFaces(Faces f);
-	bool equalOrientation(Block in);
-	bool isHome();
+	static bool equalOrientation(Block b1, Block b2);
+	bool isHome(Block b);
+	Positions getHome();
+	Faces getFaces(orientVector o);
+
+	Faces remapFaces(orientVector selVect);
+	Faces addFaceColor(Faces &f, Orientation o, Color c);
 
 
-	rByte rotate(rByte currentVector, rByte offsetVector);
-	rByte getRKey(int xRotations, int yRotations, int zRotations);
+
+
+	//rByte rotate(rByte currentVector, rByte offsetVector);
+	static void rotate(Block &block,rByte offsetVector); // rotates by the amount in offsetVector
+	rByte deRotate(orientVector oldRotationVector, orientVector newRotationVector);  // reverses a rotation
+	static rByte getRKey(int xRotations, int yRotations, int zRotations);
 	void getRotations(rByte key, int &xRotations, int &yRotations, int &zRotations);
 	oByte getOKey(Rotator tVector, Rotator fVector);
 	oByte getOKey(rByte RKey);

@@ -14,61 +14,89 @@ with "Cube.h"
 ******************************************************************************/
 int main(void)
 {
-	Cube rootCube;
-	rootCube.addBlock(topLeftFront,none,none,none,none,none,none);
+	Cube myCube;
+	myCube.SetCubeToSolved();
+	std::cout << "Show cube with block numbers\n";
+	std::cout << myCube.toString(true);
+	std::cout << "Show cube without block numbers\n";
+	std::cout << myCube.toString(false);
 
-	// for now lets create a block for testing that matches the colors of the cube itself.
-	Block testBlock(topLeftFront,Faces(blue,green,orange,red,white,yellow));
+	
+	std::cout << "Show topClockwise move\n";
+	myCube.move(topClockwise);
+	std::cout << myCube.toString(false);
 
-	// I want to see if multiple series of rotations using my rotate function come up
-	// with the same result as if the entire set was executed in sequence.
+	std::cout << "Show topCounterClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(topCounterClockwise);
+	std::cout << myCube.toString(false);
 
-	// define and rotate a set manually for xAxis+2, yAxis+1, zAxis+3
-	Rotator tManualVector = Rotator(0,1,0);  // setup the top rotator
-	Rotator fManualVector = Rotator(0,0,1);  // setup the front rotator
-	for (int xNum=0;xNum<2;++xNum) {tManualVector.incXaxis();fManualVector.incXaxis();}
-	for (int yNum=0;yNum<1;++yNum) {tManualVector.incYaxis();fManualVector.incYaxis();}
-	for (int zNum=0;zNum<3;++zNum) {tManualVector.incZaxis();fManualVector.incZaxis();}
-	// rotate testBlock the same way
-	rByte newKey = testBlock.rotate(0,testBlock.getRKey(2,1,3));
-	orientVector testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
-	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
-	{
-		std::cout << "they match for simple case" << endl;
-	}
-	else
-	{
-		std::cout << "they don't match for simple case"<< endl;
-	}
+	std::cout << "Show bottomClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(bottomClockwise);
+	std::cout << myCube.toString(false);
 
-	// make a single additional rotation
-	{tManualVector.incXaxis();fManualVector.incXaxis();}
-	rByte newKey2 = testBlock.rotate(newKey,testBlock.getRKey(1,0,0));
-	testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
-	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
-	{
-		std::cout << "they match for simple case"<< endl;
-	}
-	else
-	{
-		std::cout << "they don't match for simple case"<< endl;
-	}
+	std::cout << "Show bottomCounterClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(bottomCounterClockwise);
+	std::cout << myCube.toString(false);
 
+	std::cout << "Show rightClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(rightClockwise);
+	std::cout << myCube.toString(false);
 
-	// make a messy rotation again
-	for (int xNum=0;xNum<1;++xNum) {tManualVector.incXaxis();fManualVector.incXaxis();}
-	for (int yNum=0;yNum<3;++yNum) {tManualVector.incYaxis();fManualVector.incYaxis();}
-	for (int zNum=0;zNum<2;++zNum) {tManualVector.incZaxis();fManualVector.incZaxis();}
-	rByte newKey3 = testBlock.rotate(newKey,testBlock.getRKey(1,3,2));
-	testOrient = testBlock.getOrientation(testBlock.getOKey(newKey));
-	if ((tManualVector==testOrient.tVector) && (fManualVector==testOrient.fVector))
-	{
-		std::cout << "they match for hard case";
-	}
-	else
-	{
-		std::cout << "they don't match for hard case";
-	}
+	std::cout << "Show rightCounterClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(rightCounterClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show leftClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(leftClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show leftCounterClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(leftCounterClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show frontClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(frontClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show frontCounterClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(frontCounterClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show backClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(backClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show backCounterClockwise move\n";
+	myCube.SetCubeToSolved();
+	myCube.move(backCounterClockwise);
+	std::cout << myCube.toString(false);
+
+	std::cout << "Show move combination\n";
+	std::cout << "2RC,2LC,2TC,2BoC,2FC,2BaC \n";
+	myCube.SetCubeToSolved();
+	myCube.move(rightClockwise);
+	myCube.move(rightClockwise);
+	myCube.move(leftClockwise);
+	myCube.move(leftClockwise);
+	myCube.move(topClockwise);
+	myCube.move(topClockwise);
+	myCube.move(bottomClockwise);
+	myCube.move(bottomClockwise);
+	myCube.move(frontClockwise);
+	myCube.move(frontClockwise);
+	myCube.move(backClockwise);
+	myCube.move(backClockwise);
+	std::cout << myCube.toString(false);
 
 	system("pause");
 }

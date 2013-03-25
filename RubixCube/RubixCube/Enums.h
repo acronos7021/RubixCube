@@ -3,7 +3,7 @@
 typedef unsigned char byte;
 typedef unsigned char oByte;
 typedef unsigned char rByte;
-typedef unsigned char roByte;
+//typedef unsigned char roByte;
 
 // describes the direction the block is facing from it's home position
 enum Orientation {top,bottom,left,right,front,back,invalid};
@@ -18,7 +18,8 @@ enum Positions {topLeftFront,topLeftMiddle,topLeftBack,
 				middleLeftFront,middleLeftBack,middleRightFront,middleRightBack,
 				bottomLeftFront,bottomLeftMiddle,bottomLeftBack,
 				bottomMiddleFront, bottomMiddleBack,
-				bottomRightMiddle,bottomRightFront,bottomRightBack};
+				bottomRightFront,bottomRightMiddle,bottomRightBack,
+				noPositionMatches};
 
 // the basic moves for the faces of the cube
 enum Moves {topClockwise,topCounterClockwise,
@@ -27,7 +28,11 @@ enum Moves {topClockwise,topCounterClockwise,
 			leftClockwise,leftCounterClockwise,
 			frontClockwise,frontCounterClockwise,
 			backClockwise,backCounterClockwise};
+//			topDouble,bottomDouble,
+//			rightDouble,leftDouble,
+//			frontDouble,backDouble};
 
+// stores the colors for each of the faces.  Orientation is handled by other code.
 class Faces
 {
 public:
@@ -66,6 +71,11 @@ public:
 			return true;
 		else
 			return false;
+	}
+
+	bool operator ==(Faces f)
+	{
+		return equal(f);
 	}
 
 };
