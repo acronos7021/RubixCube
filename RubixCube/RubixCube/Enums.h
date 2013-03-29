@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_map>
 
 typedef unsigned char byte;
 typedef unsigned char oByte;
@@ -6,13 +7,13 @@ typedef unsigned char rByte;
 //typedef unsigned char roByte;
 
 // describes the direction the block is facing from it's home position
-enum Orientation {top,bottom,left,right,front,back,invalid};
+enum class Orientation : unsigned char {top,bottom,left,right,front,back,invalid};
 
 // the color for each face in the home position respectively
-enum Color {blue,green,orange,red,white,yellow,none};
+enum class Color : unsigned char {blue,green,orange,red,white,yellow,none};
 
 // the possible positions of the blocks.  Organized as [height][width][depth]
-enum Positions {topLeftFront,topLeftMiddle,topLeftBack,
+enum class Positions : unsigned char {topLeftFront,topLeftMiddle,topLeftBack,
 				topMiddleFront,topMiddleBack,
 				topRightFront,topRightMiddle,topRightBack,				
 				middleLeftFront,middleLeftBack,middleRightFront,middleRightBack,

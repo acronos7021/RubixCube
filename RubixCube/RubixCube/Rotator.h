@@ -83,6 +83,14 @@ struct orientVector
 			return false;
 	}
 
+	static bool isHome(orientVector o)
+	{
+		if ((o.tVector==Rotator(Orientation::top)) && (o.fVector==Rotator(Orientation::front)))
+			return true;
+		else 
+			return false;
+	}
+
 	bool operator ==(orientVector o)
 	{
 		return equals(o);

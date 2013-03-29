@@ -11,7 +11,7 @@ Rotator::Rotator(void)
 
 Rotator::Rotator(char xi, char yi, char zi)
 {
-	if (getOrientation(xi,yi,zi)==invalid) 
+	if (getOrientation(xi,yi,zi)==Orientation::invalid) 
 		throw std::out_of_range("there is no orientation that matches");
 	x=xi;
 	y=yi;
@@ -54,12 +54,12 @@ Rotator::Rotator(byte key)
 
 void Rotator::loadOrientation(Orientation o)
 {
-	if      (o==top)	{x=0;y=1;z=0;}
-	else if (o==bottom)	{x=0;y=-1;z=0;}
-	else if (o==left)	{x=-1;y=0;z=0;}
-	else if (o==right)	{x=1;y=0;z=0;}
-	else if (o==front)	{x=0;y=0;z=1;}
-	else if (o==back)	{x=0;y=0;z=-1;}
+	if      (o==Orientation::top)	{x=0;y=1;z=0;}
+	else if (o==Orientation::bottom)	{x=0;y=-1;z=0;}
+	else if (o==Orientation::left)	{x=-1;y=0;z=0;}
+	else if (o==Orientation::right)	{x=1;y=0;z=0;}
+	else if (o==Orientation::front)	{x=0;y=0;z=1;}
+	else if (o==Orientation::back)	{x=0;y=0;z=-1;}
 }
 
 // all rotations are clockwise facing their positive axis
@@ -150,24 +150,24 @@ Rotator Rotator::getOpposite()
 
 Orientation Rotator::getOrientation(int xi, int yi, int zi)
 {
-	if ((xi== 0) && (yi== 1) && (zi== 0)) return top;
-	if ((xi== 0) && (yi==-1) && (zi== 0)) return bottom;
-	if ((xi==-1) && (yi== 0) && (zi== 0)) return left;
-	if ((xi== 1) && (yi== 0) && (zi== 0)) return right;
-	if ((xi== 0) && (yi== 0) && (zi== 1)) return front;
-	if ((xi== 0) && (yi== 0) && (zi==-1)) return back;
-	return invalid;
+	if ((xi== 0) && (yi== 1) && (zi== 0)) return Orientation::top;
+	if ((xi== 0) && (yi==-1) && (zi== 0)) return Orientation::bottom;
+	if ((xi==-1) && (yi== 0) && (zi== 0)) return Orientation::left;
+	if ((xi== 1) && (yi== 0) && (zi== 0)) return Orientation::right;
+	if ((xi== 0) && (yi== 0) && (zi== 1)) return Orientation::front;
+	if ((xi== 0) && (yi== 0) && (zi==-1)) return Orientation::back;
+	return Orientation::invalid;
 }
 
 std::string Rotator::toString()
 {
 	Orientation o = getOrientation();
-	if (o==top)		return "top";
-	if (o==bottom)	return "bottom";
-	if (o==left)	return "left";
-	if (o==right)	return "right";
-	if (o==front)	return "front";
-	if (o==back)	return "back";
+	if (o==Orientation::top)		return "top";
+	if (o==Orientation::bottom)	return "bottom";
+	if (o==Orientation::left)	return "left";
+	if (o==Orientation::right)	return "right";
+	if (o==Orientation::front)	return "front";
+	if (o==Orientation::back)	return "back";
 	return "invalid";
 }
 

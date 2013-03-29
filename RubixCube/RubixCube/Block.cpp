@@ -29,7 +29,7 @@ BasicBlock::BasicBlock( Positions home,Faces f)
 void BasicBlock::initBlock(Positions home,Faces f)
 {
 	homePosition=home;
-	homeOrientation=orientVector(top,front);
+	homeOrientation=orientVector(Orientation::top,Orientation::front);
 	faces = f;
 }
 
@@ -55,7 +55,7 @@ orientVector BasicBlock::checkBlock(Faces f)
 			}
 		}
 	}
-	return orientVector(Rotator(top),Rotator(top)); // return an invalid orientation
+	return orientVector(Rotator(Orientation::top),Rotator(Orientation::top)); // return an invalid orientation
 }
 
 Block BasicBlock::loadBlock(byte homeBlock,Positions p,orientVector o)
@@ -71,12 +71,12 @@ Block BasicBlock::loadBlock(byte homeBlock,Positions p,orientVector o)
 // used by remapFaces to put each face color in place.
 Faces BasicBlock::addFaceColor(Faces &f, Orientation o, Color c)
 {
-	if (o == top) f.topColor=c;
-	if (o == bottom) f.bottomColor=c;
-	if (o == left) f.leftColor=c;
-	if (o == right) f.rightColor=c;
-	if (o == front) f.frontColor=c;
-	if (o == back) f.backColor=c;
+	if (o == Orientation::top) f.topColor=c;
+	if (o == Orientation::bottom) f.bottomColor=c;
+	if (o == Orientation::left) f.leftColor=c;
+	if (o == Orientation::right) f.rightColor=c;
+	if (o == Orientation::front) f.frontColor=c;
+	if (o == Orientation::back) f.backColor=c;
 	return f;
 }
 
@@ -89,12 +89,12 @@ Faces BasicBlock::remapFaces(orientVector selVect)
 
 	// map home vectors and assign the color to each face
 	// then rotate the vectors to the correct position
-	Rotator to = Rotator(top);
-	Rotator bo = Rotator(bottom);
-	Rotator ri = Rotator(right);
-	Rotator le = Rotator(left);
-	Rotator fr = Rotator(front);
-	Rotator ba = Rotator(back);
+	Rotator to = Rotator(Orientation::top);
+	Rotator bo = Rotator(Orientation::bottom);
+	Rotator ri = Rotator(Orientation::right);
+	Rotator le = Rotator(Orientation::left);
+	Rotator fr = Rotator(Orientation::front);
+	Rotator ba = Rotator(Orientation::back);
 
 	// rotate these vectors by the correct amount
 	int xRotations,yRotations,zRotations;
@@ -148,7 +148,7 @@ bool BasicBlock::equalOrientation(Block b1, Block b2)
 
 bool BasicBlock::isHome(Block b)
 {
-	if ((b.homeBlock==homePosition) && (b.position==homePosition) && (b.orientationVector==homeOrientation))
+	if ((b.homeBlock==(byte) homePosition) && (b.position == homePosition) && (b.orientationVector == homeOrientation))
 		return true;
 	else
 		return false;
@@ -163,6 +163,16 @@ Faces BasicBlock::getFaces(orientVector o)
 {
 	return faces.copy();
 }
+
+bool BasicBlock::equalBlocks(Block b1, Block b2)
+{
+	if (b1.homeBlock != b2.homeBlock) return false;
+	if (!b1.orientationVector.equals(b2.orientationVector)) return false;
+	if (b1.position != b2.position) return false;
+	// if we got here, they should be the same
+	return true;
+}
+
 /****************************************************************************************************
 	There are 24 orientations.  The orientations are represented by 3 sets of 3 bits.
 	The active bits are [0]11 011 011 in a byte.  The extra zero is to leave space for the bits
@@ -217,8 +227,8 @@ rByte BasicBlock::deRotate(orientVector oldRotationVector, orientVector newRotat
 	// convert oByte to rByte
 	rByte currRByte = oVector[currOByte];
 	// calculate rotations
-	int xRotations = (currRByte << 6) & 0x03;
-	int yRotations = (currRByte << 3) & 0x03;
+	int xRotations = (currRByte >> 6) & 0x03;
+	int yRotations = (currRByte >> 3) & 0x03;
 	int zRotations = currRByte & 0x03;
 	// do rotations in reverse order
 	for (;zRotations>0;zRotations--) 

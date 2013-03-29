@@ -16,6 +16,7 @@ int main(void)
 {
 	Cube myCube;
 	myCube.SetCubeToSolved();
+	int test = Cube::unSolved(myCube);
 	std::cout << "Show cube with block numbers\n";
 	std::cout << myCube.toString(true);
 	std::cout << "Show cube without block numbers\n";
@@ -25,6 +26,11 @@ int main(void)
 	std::cout << "Show topClockwise move\n";
 	myCube.move(topClockwise);
 	std::cout << myCube.toString(false);
+
+	std::cout << "Show topclockwise then topCounterClockwise move\n";
+	myCube.move(topCounterClockwise);
+	std::cout << myCube.toString(false);
+
 
 	std::cout << "Show topCounterClockwise move\n";
 	myCube.SetCubeToSolved();
@@ -97,6 +103,10 @@ int main(void)
 	myCube.move(backClockwise);
 	myCube.move(backClockwise);
 	std::cout << myCube.toString(false);
+
+	test = Cube::unSolved(myCube);
+
+	myCube.calculateAdvancedTransferFunctions();
 
 	system("pause");
 }
