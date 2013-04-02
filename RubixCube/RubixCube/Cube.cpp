@@ -348,7 +348,7 @@ int Cube::solved()
 		if (homeBlocks[blocks2[i].homeBlock].isHome(blocks2[i]))  // needs work
 			solvedBlocks++;
 	}
-	return solvedBlocks;
+	return 20 - solvedBlocks;
 }
 
 
