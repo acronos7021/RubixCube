@@ -31,6 +31,7 @@ private:
 	//Positions currentPosition;
 	//orientVector currentOrientation;
 	Faces faces;
+	rByte getRKey(int xRotations, int yRotations, int zRotations);
 
 public:
 	BasicBlock(void);
@@ -55,16 +56,19 @@ public:
 	Faces remapFaces(orientVector selVect);
 	Faces addFaceColor(Faces &f, Orientation o, Color c);
 
+	static bool equalBlocks(Block b1, Block b2);
+
 
 
 
 	//rByte rotate(rByte currentVector, rByte offsetVector);
 	static void rotate(Block &block,rByte offsetVector); // rotates by the amount in offsetVector
-	rByte deRotate(orientVector oldRotationVector, orientVector newRotationVector);  // reverses a rotation
-	static rByte getRKey(int xRotations, int yRotations, int zRotations);
+	static rByte deRotate(orientVector oldRotationVector, orientVector newRotationVector);  // reverses a rotation
+
+	static rByte getNRKey(int xRotations,int yRotations, int zRotations);
 	void getRotations(rByte key, int &xRotations, int &yRotations, int &zRotations);
-	oByte getOKey(Rotator tVector, Rotator fVector);
-	oByte getOKey(rByte RKey);
+	static oByte getOKey(Rotator tVector, Rotator fVector);
+	static oByte getOKey(rByte RKey);
 	orientVector getOrientation(oByte key);
 };
 

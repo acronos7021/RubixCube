@@ -17,35 +17,46 @@
 	two Rotators to orient a cube.
 ***********************************************************************************/
 
+
+
+
 class Rotator
 {
-public:
-	int x;
-	int y;
-	int z;
-	//Color color;
+	Orientation ro;
+	static const byte xAxis[4]; 
+	static const byte yAxis[4]; 
+	static const byte zAxis[4]; 
 
+	static const byte rxAxis[6]; 
+	static const byte ryAxis[6]; 
+	static const byte rzAxis[6]; 
+
+public:
 	Rotator(void);
 	~Rotator(void);
 
-	Rotator(char xi, char yi, char zi);
-	//Rotator(char xi,char yi, char zi, Color c);
 	Rotator(Orientation o);
-	//Rotator(Orientation o, Color c);
 	Rotator(byte key);
 
-	void loadOrientation(Orientation o);
+	bool equals(Rotator o);
+	bool operator ==(Rotator o);
+	bool operator !=(Rotator o);
+
 	void incXaxis();
 	void incYaxis();
 	void incZaxis();
-	void decXaxis();
-	void decYaxis();
-	void decZaxis();
-	Rotator getOpposite();
-	bool equals(Rotator o);
-	bool operator ==(Rotator o);
+	//void decXaxis();
+	//void decYaxis();
+	//void decZaxis();
+
+	void loadOrientation(Orientation o);
+
 	Orientation getOrientation();
-	Orientation getOrientation(int xi, int yi, int zi);
+	Rotator getOpposite();
+
+	static Rotator getAxis(Rotator t,Rotator f);
+	static rByte difference(Rotator v1, Rotator v2);
+
 	std::string toString();
 };
 
@@ -80,6 +91,14 @@ struct orientVector
 		if ((tVector == o.tVector) && (fVector == o.fVector))
 			return true;
 		else
+			return false;
+	}
+
+	static bool isHome(orientVector o)
+	{
+		if ((o.tVector==Rotator(Orientation::top)) && (o.fVector==Rotator(Orientation::front)))
+			return true;
+		else 
 			return false;
 	}
 
