@@ -8,8 +8,9 @@ oByte BasicBlock::roByteConvert[256];
 
 BasicBlock::BasicBlock(void)
 {
+	if (!initialized)
+		createNormalizers();
 	initialized=true;
-	createNormalizers();
 	//loaded=false;
 }
 
@@ -216,43 +217,105 @@ void BasicBlock::rotate(Block &block, rByte offsetVector)
 // between the current rotation and an old rotation and returns the moves that would have
 // been required to move between them.  It is called each time a new transfer function is
 // discovered to calculate what transfers to add.
+//rByte BasicBlock::deRotate(orientVector oldRotationVector, orientVector newRotationVector)
+//{
+//	// rotate both orientVectors to to oldRotationVector home
+//	// copy currentOrienation vector so that our changes don't affect this block orientation
+//	//orientVector newRotationVector = currentOrientation;
+//	// get rotation numbers needed to create the current rotation
+//	// The oByte can be converted to the rByte which can be converted to the correct orientations
+//	oByte currOByte = getOKey(newRotationVector.tVector,newRotationVector.fVector);
+//	// convert oByte to rByte
+//	rByte currRByte = oVector[currOByte];
+//	// calculate rotations
+//	int xRotations = (currRByte >> 6) & 0x03;
+//	int yRotations = (currRByte >> 3) & 0x03;
+//	int zRotations = currRByte & 0x03;
+//	// do rotations in reverse order
+//	for (;zRotations>0;zRotations--) 
+//	{ 
+//		newRotationVector.fVector.decZaxis(); newRotationVector.tVector.decZaxis();
+//		oldRotationVector.fVector.decZaxis(); oldRotationVector.tVector.decZaxis();
+//	}
+//	for (;yRotations>0;yRotations--)
+//	{ 
+//		newRotationVector.fVector.decYaxis(); newRotationVector.tVector.decYaxis();
+//		oldRotationVector.fVector.decYaxis(); oldRotationVector.tVector.decYaxis();
+//	}
+//	for (;xRotations>0;xRotations--)
+//	{ 
+//		newRotationVector.fVector.decXaxis(); newRotationVector.tVector.decXaxis();
+//		oldRotationVector.fVector.decXaxis(); oldRotationVector.tVector.decXaxis();
+//	}
+//	// if it worked correctly, newRotationVector should be in it's home position.
+//	// now the oldRotationVector rotation should be where it would be oriented 
+//	// if it had started from home position. Now our normalizers should work directly on it.
+//	oByte oldObyte = getOKey(oldRotationVector.tVector,oldRotationVector.fVector);
+//	return oVector[oldObyte];  // return the rByte for the difference.
+//}
+
+
+// deRotate is always clockwise.  It takes the two vectors and calculates the clockwise
+// rotations that would be required to move from one to the other.
 rByte BasicBlock::deRotate(orientVector oldRotationVector, orientVector newRotationVector)
 {
-	// rotate both orientVectors to to oldRotationVector home
-	// copy currentOrienation vector so that our changes don't affect this block orientation
-	//orientVector newRotationVector = currentOrientation;
-	// get rotation numbers needed to create the current rotation
-	// The oByte can be converted to the rByte which can be converted to the correct orientations
-	oByte currOByte = getOKey(newRotationVector.tVector,newRotationVector.fVector);
-	// convert oByte to rByte
-	rByte currRByte = oVector[currOByte];
-	// calculate rotations
-	int xRotations = (currRByte >> 6) & 0x03;
-	int yRotations = (currRByte >> 3) & 0x03;
-	int zRotations = currRByte & 0x03;
-	// do rotations in reverse order
-	for (;zRotations>0;zRotations--) 
-	{ 
-		newRotationVector.fVector.decZaxis(); newRotationVector.tVector.decZaxis();
-		oldRotationVector.fVector.decZaxis(); oldRotationVector.tVector.decZaxis();
-	}
-	for (;yRotations>0;yRotations--)
-	{ 
-		newRotationVector.fVector.decYaxis(); newRotationVector.tVector.decYaxis();
-		oldRotationVector.fVector.decYaxis(); oldRotationVector.tVector.decYaxis();
-	}
-	for (;xRotations>0;xRotations--)
-	{ 
-		newRotationVector.fVector.decXaxis(); newRotationVector.tVector.decXaxis();
-		oldRotationVector.fVector.decXaxis(); oldRotationVector.tVector.decXaxis();
-	}
-	// if it worked correctly, newRotationVector should be in it's home position.
-	// now the oldRotationVector rotation should be where it would be oriented 
-	// if it had started from home position. Now our normalizers should work directly on it.
-	oByte oldObyte = getOKey(oldRotationVector.tVector,oldRotationVector.fVector);
-	return oVector[oldObyte];  // return the rByte for the difference.
+	rByte newPlane = Rotator::difference(newRotationVector.tVector,newRotationVector.fVector);
+	rByte oldPlane = Rotator::difference(oldRotationVector.tVector,oldRotationVector.fVector);
+	rByte tDiff = Rotator::difference(newRotationVector.tVector,oldRotationVector.tVector);
+	rByte fDiff = Rotator::difference(newRotationVector.fVector,newRotationVector.fVector);
+
+	// if either of them rotates in a directions, then that direction is important
+	// so, combine them.
+	return tDiff | fDiff;
+
+	////Rotator newRotator;
+	////Rotator oldRotator;
+	//if (oldRotationVector.tVector==newRotationVector.tVector)
+	//{
+	//	// it must either be fVector that is rotating or there is no rotation, tVector is the axis
+	//	return normalizer[Rotator::difference(newRotationVector.fVector,oldRotationVector.fVector)];
+	//}
+	//else
+	//{
+	//	// either tVector is doing the rotation or both of them are rotating the same way
+	//	if (oldRotationVector.fVector==newRotationVector.fVector)
+	//	{
+	//		// tVector is doing the rotation. fVector is the axis
+	//		return normalizer[Rotator::difference(newRotationVector.tVector,oldRotationVector.tVector)];
+	//	}
+	//	else
+	//	{
+	//		// both vectors are doing the rotation so we need to calculate the axis
+	//		Rotator axis = Rotator::getAxis(newRotationVector.tVector,newRotationVector.fVector);
+	//		return normalizer[Rotator::difference(newRotationVector.tVector,oldRotationVector.tVector)];
+	//	}
+	//}
 }
 
+
+	//oByte newOByte = getOKey(newRotationVector.tVector,newRotationVector.fVector);
+	//// convert oByte to rByte
+	//rByte newRByte = oVector[newOByte];
+	//// calculate rotations
+	//int newXrotations = (newRByte >> 6) & 0x03;
+	//int newYrotations = (newRByte >> 3) & 0x03;
+	//int newZrotations = newRByte & 0x03;
+
+	//oByte oldOByte = getOKey(oldRotationVector.tVector,oldRotationVector.fVector);
+	//// convert oByte to rByte
+	//rByte oldRByte = oVector[oldOByte];
+	//// calculate rotations
+	//int oldXrotations = (oldRByte >> 6) & 0x03;
+	//int oldYrotations = (oldRByte >> 3) & 0x03;
+	//int oldZrotations = oldRByte & 0x03;
+
+	//int diffXrotations = (oldXrotations + 4 - newXrotations) % 4;
+	//int diffYrotations = (oldYrotations + 4 - newYrotations) % 4;
+	//int diffZrotations = (oldZrotations + 4 - newZrotations) % 4;
+
+	//rByte diffRbyte = getNRKey(diffXrotations,diffYrotations,diffZrotations);
+	//return diffRbyte;
+//}
 
 // this takes a series of rotations and converts it to the key used by normalizer
 // and rotate.  It loads the rotations for each direction into a single char
@@ -263,7 +326,22 @@ rByte BasicBlock::getRKey(int xRotations, int yRotations, int zRotations)
 	//xRotations leave the same
 	xRotations = xRotations << 6;  //shift left 6 bits
 	yRotations = yRotations << 3;  //shift left 3 bits 
-	return xRotations | yRotations | zRotations; //combine the three together in one byte using bitwise or
+	rByte rKey = xRotations | yRotations | zRotations;
+	return rKey; //combine the three together in one byte using bitwise or
+}
+
+// the same as getRKey but it normalizes the result
+rByte BasicBlock::getNRKey(int xRotations,int yRotations, int zRotations)
+{
+	xRotations = xRotations % 4;
+	yRotations = yRotations % 4;
+	zRotations = zRotations % 4;
+	//xRotations leave the same
+	xRotations = xRotations << 6;  //shift left 6 bits
+	yRotations = yRotations << 3;  //shift left 3 bits 
+	rByte rKey = xRotations | yRotations | zRotations;
+	rKey = normalizer[rKey];
+	return rKey; //combine the three together in one byte using bitwise or
 }
 
 // reverses getRKey
@@ -338,8 +416,8 @@ void BasicBlock::createNormalizers()
 			for (zAxis=0; zAxis <=3; ++zAxis)
 			{
 				// get rotation
-				Rotator tVector = Rotator(0,1,0);  // setup the top rotator
-				Rotator fVector = Rotator(0,0,1);  // setup the front rotator
+				Rotator tVector = Rotator(Orientation::top);  // setup the top rotator
+				Rotator fVector = Rotator(Orientation::front);  // setup the front rotator
 				for (int xNum=0;xNum<xAxis;++xNum) {tVector.incXaxis();fVector.incXaxis();}
 				for (int yNum=0;yNum<yAxis;++yNum) {tVector.incYaxis();fVector.incYaxis();}
 				for (int zNum=0;zNum<zAxis;++zNum) {tVector.incZaxis();fVector.incZaxis();}

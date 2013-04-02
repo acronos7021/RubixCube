@@ -1,5 +1,7 @@
 #include <sstream>
 #include <vector>
+#include <algorithm>  
+#include <iostream>
 #include <time.h>
 #include "Cube.h"
 
@@ -8,7 +10,7 @@
 bool Cube::initialized = false;
 BasicBlock Cube::homeBlocks[20];
 std::vector<TransferFunction> Cube::transferFunctions;
-std::map<std::vector<TransferMoves>,int> Cube::reverseTransferFunctionMap;
+std::map<TransferMoveSet,int> Cube::reverseTransferFunctionMap;
 
 Cube::Cube(void)
 {
@@ -90,186 +92,204 @@ void Cube::initBasicTransferFunctions()
 	// each block has to lead to the next without deleting the previous
 	// for now we will use a vector because its easier.  Optomize later
 	
+
+
+
 	// topClockwisetop
-	TransferFunction tcw;
-	tcw.transferFaceMoves.push_back(topClockwise);
-	rByte key = BasicBlock::getRKey(0,1,0);
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftFront,Positions::topLeftBack,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftBack,Positions::topRightBack,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightBack,Positions::topRightFront,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightFront,Positions::topLeftFront,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftMiddle,Positions::topMiddleBack,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleBack,Positions::topRightMiddle,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightMiddle,Positions::topMiddleFront,key));
-	tcw.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleFront,Positions::topLeftMiddle,key));
-	transferFunctions.push_back(tcw);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(tcw.transferBlockMoves,0));
+	rByte key = BasicBlock::getNRKey(0,1,0);
+	std::vector<TransferMoves> tcw;
+	tcw.push_back(createTransferMove(Positions::topLeftFront,Positions::topLeftBack,key));
+	tcw.push_back(createTransferMove(Positions::topLeftBack,Positions::topRightBack,key));
+	tcw.push_back(createTransferMove(Positions::topRightBack,Positions::topRightFront,key));
+	tcw.push_back(createTransferMove(Positions::topRightFront,Positions::topLeftFront,key));
+	tcw.push_back(createTransferMove(Positions::topLeftMiddle,Positions::topMiddleBack,key));
+	tcw.push_back(createTransferMove(Positions::topMiddleBack,Positions::topRightMiddle,key));
+	tcw.push_back(createTransferMove(Positions::topRightMiddle,Positions::topMiddleFront,key));
+	tcw.push_back(createTransferMove(Positions::topMiddleFront,Positions::topLeftMiddle,key));
+	std::sort(tcw.begin(),tcw.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet tcwms = TransferMoveSet(tcw);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(tcwms,0));
+	transferFunctions.push_back(TransferFunction(Moves::topClockwise,tcwms));
 	
 	// topCounterClockwise
-	TransferFunction tcc;
-	tcc.transferFaceMoves.push_back(topCounterClockwise);
-	key = BasicBlock::getRKey(0,3,0);
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftFront,Positions::topRightFront,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightFront,Positions::topRightBack,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightBack,Positions::topLeftBack,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftBack,Positions::topLeftFront,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftMiddle,Positions::topMiddleFront,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleFront,Positions::topRightMiddle,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightMiddle,Positions::topMiddleBack,key));
-	tcc.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleBack,Positions::topLeftMiddle,key));
-	transferFunctions.push_back(tcc);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(tcc.transferBlockMoves,1));
+	key = BasicBlock::getNRKey(0,3,0);
+	std::vector<TransferMoves> tcc;
+	tcc.push_back(createTransferMove(Positions::topLeftFront,Positions::topRightFront,key));
+	tcc.push_back(createTransferMove(Positions::topRightFront,Positions::topRightBack,key));
+	tcc.push_back(createTransferMove(Positions::topRightBack,Positions::topLeftBack,key));
+	tcc.push_back(createTransferMove(Positions::topLeftBack,Positions::topLeftFront,key));
+	tcc.push_back(createTransferMove(Positions::topLeftMiddle,Positions::topMiddleFront,key));
+	tcc.push_back(createTransferMove(Positions::topMiddleFront,Positions::topRightMiddle,key));
+	tcc.push_back(createTransferMove(Positions::topRightMiddle,Positions::topMiddleBack,key));
+	tcc.push_back(createTransferMove(Positions::topMiddleBack,Positions::topLeftMiddle,key));
+	std::sort(tcc.begin(),tcc.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet tccms = TransferMoveSet(tcc);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(tccms,1));
+	transferFunctions.push_back(TransferFunction(Moves::topCounterClockwise,tccms));
+
 
 	//bottomClockwise
-	TransferFunction bcc;
-	bcc.transferFaceMoves.push_back(bottomClockwise);
-	key = BasicBlock::getRKey(0,3,0);
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomRightFront,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomRightBack,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomLeftBack,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomLeftFront,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::bottomMiddleFront,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::bottomRightMiddle,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::bottomMiddleBack,key));
-	bcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::bottomLeftMiddle,key));
-	transferFunctions.push_back(bcc);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bcc.transferBlockMoves,2));
+	key = BasicBlock::getNRKey(0,3,0);
+	std::vector<TransferMoves> bcc;
+	bcc.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomRightFront,key));
+	bcc.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomRightBack,key));
+	bcc.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomLeftBack,key));
+	bcc.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomLeftFront,key));
+	bcc.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::bottomMiddleFront,key));
+	bcc.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::bottomRightMiddle,key));
+	bcc.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::bottomMiddleBack,key));
+	bcc.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::bottomLeftMiddle,key));
+	std::sort(bcc.begin(),bcc.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet bccms = TransferMoveSet(bcc);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bccms,2));
+	transferFunctions.push_back(TransferFunction(Moves::bottomClockwise,bccms));
 
 	//bottomCounterClockwise
-	TransferFunction bcw;
-	bcw.transferFaceMoves.push_back(bottomCounterClockwise);
-	key = BasicBlock::getRKey(0,1,0);
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomLeftBack,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomRightBack,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomRightFront,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomLeftFront,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::bottomMiddleBack,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::bottomRightMiddle,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::bottomMiddleFront,key));
-	bcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::bottomLeftMiddle,key));
-	transferFunctions.push_back(bcw);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bcw.transferBlockMoves,3));
-
+	key = BasicBlock::getNRKey(0,1,0);
+	std::vector<TransferMoves> bcw;
+	bcw.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomLeftBack,key));
+	bcw.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomRightBack,key));
+	bcw.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomRightFront,key));
+	bcw.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomLeftFront,key));
+	bcw.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::bottomMiddleBack,key));
+	bcw.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::bottomRightMiddle,key));
+	bcw.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::bottomMiddleFront,key));
+	bcw.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::bottomLeftMiddle,key));
+	std::sort(bcw.begin(),bcw.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet bcwms = TransferMoveSet(bcw);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bcwms,3));	
+	transferFunctions.push_back(TransferFunction(Moves::bottomCounterClockwise,bcwms));
 
 	//rightClockwise
-	TransferFunction rcw;
-	rcw.transferFaceMoves.push_back(rightClockwise);
-	key = BasicBlock::getRKey(1,0,0);
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightFront,Positions::topRightBack,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightBack,Positions::bottomRightBack,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomRightFront,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightFront,Positions::topRightFront,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightMiddle,Positions::middleRightBack,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::middleRightBack,Positions::bottomRightMiddle,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::middleRightFront,key));
-	rcw.transferBlockMoves.push_back(createTransferMove(Positions::middleRightFront,Positions::topRightMiddle,key));
-	transferFunctions.push_back(rcw);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(rcw.transferBlockMoves,4));
+//	transferFunctions.push_back(rightClockwise);
+	key = BasicBlock::getNRKey(1,0,0);
+	std::vector<TransferMoves> rcw;
+	rcw.push_back(createTransferMove(Positions::topRightFront,Positions::topRightBack,key));
+	rcw.push_back(createTransferMove(Positions::topRightBack,Positions::bottomRightBack,key));
+	rcw.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomRightFront,key));
+	rcw.push_back(createTransferMove(Positions::bottomRightFront,Positions::topRightFront,key));
+	rcw.push_back(createTransferMove(Positions::topRightMiddle,Positions::middleRightBack,key));
+	rcw.push_back(createTransferMove(Positions::middleRightBack,Positions::bottomRightMiddle,key));
+	rcw.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::middleRightFront,key));
+	rcw.push_back(createTransferMove(Positions::middleRightFront,Positions::topRightMiddle,key));
+	std::sort(rcw.begin(),rcw.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet rcwms = TransferMoveSet(rcw);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(rcwms,4));	
+	transferFunctions.push_back(TransferFunction(Moves::rightClockwise,rcwms));
 
 	//rightCounterClockwise
-	TransferFunction rcc;
-	rcc.transferFaceMoves.push_back(rightCounterClockwise);
-	key = BasicBlock::getRKey(3,0,0);
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightFront,Positions::bottomRightFront,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomRightBack,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightBack,Positions::topRightBack,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightBack,Positions::topRightFront,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightMiddle,Positions::middleRightFront,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::middleRightFront,Positions::bottomRightMiddle,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::middleRightBack,key));
-	rcc.transferBlockMoves.push_back(createTransferMove(Positions::middleRightBack,Positions::topRightMiddle,key));
-	transferFunctions.push_back(rcc);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(rcc.transferBlockMoves,5));
+	key = BasicBlock::getNRKey(3,0,0);
+	std::vector<TransferMoves> rcc;
+	rcc.push_back(createTransferMove(Positions::topRightFront,Positions::bottomRightFront,key));
+	rcc.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomRightBack,key));
+	rcc.push_back(createTransferMove(Positions::bottomRightBack,Positions::topRightBack,key));
+	rcc.push_back(createTransferMove(Positions::topRightBack,Positions::topRightFront,key));
+	rcc.push_back(createTransferMove(Positions::topRightMiddle,Positions::middleRightFront,key));
+	rcc.push_back(createTransferMove(Positions::middleRightFront,Positions::bottomRightMiddle,key));
+	rcc.push_back(createTransferMove(Positions::bottomRightMiddle,Positions::middleRightBack,key));
+	rcc.push_back(createTransferMove(Positions::middleRightBack,Positions::topRightMiddle,key));
+	std::sort(rcc.begin(),rcc.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet rccms = TransferMoveSet(rcc);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(rccms,5));	
+	transferFunctions.push_back(TransferFunction(Moves::rightCounterClockwise,rccms));
 
 	//leftClockwise
-	TransferFunction lcw;
-	lcw.transferFaceMoves.push_back(leftClockwise);
-	key = BasicBlock::getRKey(3,0,0);
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftFront,Positions::bottomLeftFront,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomLeftBack,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftBack,Positions::topLeftBack,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftBack,Positions::topLeftFront,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftMiddle,Positions::middleLeftFront,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftFront,Positions::bottomLeftMiddle,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::middleLeftBack,key));
-	lcw.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftBack,Positions::topLeftMiddle,key));
-	transferFunctions.push_back(lcw);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(lcw.transferBlockMoves,6));
+	key = BasicBlock::getNRKey(3,0,0);
+	std::vector<TransferMoves> lcw;
+	lcw.push_back(createTransferMove(Positions::topLeftFront,Positions::bottomLeftFront,key));
+	lcw.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomLeftBack,key));
+	lcw.push_back(createTransferMove(Positions::bottomLeftBack,Positions::topLeftBack,key));
+	lcw.push_back(createTransferMove(Positions::topLeftBack,Positions::topLeftFront,key));
+	lcw.push_back(createTransferMove(Positions::topLeftMiddle,Positions::middleLeftFront,key));
+	lcw.push_back(createTransferMove(Positions::middleLeftFront,Positions::bottomLeftMiddle,key));
+	lcw.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::middleLeftBack,key));
+	lcw.push_back(createTransferMove(Positions::middleLeftBack,Positions::topLeftMiddle,key));
+	std::sort(lcw.begin(),lcw.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet lcwms = TransferMoveSet(lcw);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(lcwms,6));	
+	transferFunctions.push_back(TransferFunction(Moves::leftClockwise,lcwms));
 
 	//leftCounterClockwise
-	TransferFunction lcc;
-	lcc.transferFaceMoves.push_back(leftCounterClockwise);
-	key = BasicBlock::getRKey(1,0,0);
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftFront,Positions::topLeftBack,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftBack,Positions::bottomLeftBack,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomLeftFront,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftFront,Positions::topLeftFront,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftMiddle,Positions::middleLeftBack,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftBack,Positions::bottomLeftMiddle,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::middleLeftFront,key));
-	lcc.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftFront,Positions::topLeftMiddle,key));
-	transferFunctions.push_back(lcc);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(lcc.transferBlockMoves,7));
+	key = BasicBlock::getNRKey(1,0,0);
+	std::vector<TransferMoves> lcc;
+	lcc.push_back(createTransferMove(Positions::topLeftFront,Positions::topLeftBack,key));
+	lcc.push_back(createTransferMove(Positions::topLeftBack,Positions::bottomLeftBack,key));
+	lcc.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomLeftFront,key));
+	lcc.push_back(createTransferMove(Positions::bottomLeftFront,Positions::topLeftFront,key));
+	lcc.push_back(createTransferMove(Positions::topLeftMiddle,Positions::middleLeftBack,key));
+	lcc.push_back(createTransferMove(Positions::middleLeftBack,Positions::bottomLeftMiddle,key));
+	lcc.push_back(createTransferMove(Positions::bottomLeftMiddle,Positions::middleLeftFront,key));
+	lcc.push_back(createTransferMove(Positions::middleLeftFront,Positions::topLeftMiddle,key));
+	std::sort(lcc.begin(),lcc.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet lccms = TransferMoveSet(lcc);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(lccms,7));	
+	transferFunctions.push_back(TransferFunction(Moves::leftCounterClockwise,lccms));
 
 	//frontClockwise
-	TransferFunction fcw;
-	fcw.transferFaceMoves.push_back(frontClockwise);
-	key = BasicBlock::getRKey(0,0,1);
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftFront,Positions::topRightFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::topRightFront,Positions::bottomRightFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomLeftFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftFront,Positions::topLeftFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleFront,Positions::middleRightFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::middleRightFront,Positions::bottomMiddleFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::middleLeftFront,key));
-	fcw.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftFront,Positions::topMiddleFront,key));
-	transferFunctions.push_back(fcw);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(fcw.transferBlockMoves,8));
+	key = BasicBlock::getNRKey(0,0,1);
+	std::vector<TransferMoves> fcw;
+	fcw.push_back(createTransferMove(Positions::topLeftFront,Positions::topRightFront,key));
+	fcw.push_back(createTransferMove(Positions::topRightFront,Positions::bottomRightFront,key));
+	fcw.push_back(createTransferMove(Positions::bottomRightFront,Positions::bottomLeftFront,key));
+	fcw.push_back(createTransferMove(Positions::bottomLeftFront,Positions::topLeftFront,key));
+	fcw.push_back(createTransferMove(Positions::topMiddleFront,Positions::middleRightFront,key));
+	fcw.push_back(createTransferMove(Positions::middleRightFront,Positions::bottomMiddleFront,key));
+	fcw.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::middleLeftFront,key));
+	fcw.push_back(createTransferMove(Positions::middleLeftFront,Positions::topMiddleFront,key));
+	std::sort(fcw.begin(),fcw.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet fcwms = TransferMoveSet(fcw);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(fcwms,8));
+	transferFunctions.push_back(TransferFunction(Moves::frontClockwise,fcwms));
+
 
 	//frontCounterClockwise
-	TransferFunction fcc;
-	fcc.transferFaceMoves.push_back(frontCounterClockwise);
-	key = BasicBlock::getRKey(0,0,3);
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftFront,Positions::bottomLeftFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomRightFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightFront,Positions::topRightFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::topRightFront,Positions::topLeftFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleFront,Positions::middleLeftFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftFront,Positions::bottomMiddleFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::middleRightFront,key));
-	fcc.transferBlockMoves.push_back(createTransferMove(Positions::middleRightFront,Positions::topMiddleFront,key));
-	transferFunctions.push_back(fcc);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(fcc.transferBlockMoves,9));
+	key = BasicBlock::getNRKey(0,0,3);
+	std::vector<TransferMoves> fcc;
+	fcc.push_back(createTransferMove(Positions::topLeftFront,Positions::bottomLeftFront,key));
+	fcc.push_back(createTransferMove(Positions::bottomLeftFront,Positions::bottomRightFront,key));
+	fcc.push_back(createTransferMove(Positions::bottomRightFront,Positions::topRightFront,key));
+	fcc.push_back(createTransferMove(Positions::topRightFront,Positions::topLeftFront,key));
+	fcc.push_back(createTransferMove(Positions::topMiddleFront,Positions::middleLeftFront,key));
+	fcc.push_back(createTransferMove(Positions::middleLeftFront,Positions::bottomMiddleFront,key));
+	fcc.push_back(createTransferMove(Positions::bottomMiddleFront,Positions::middleRightFront,key));
+	fcc.push_back(createTransferMove(Positions::middleRightFront,Positions::topMiddleFront,key));
+	std::sort(fcc.begin(),fcc.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet fccms = TransferMoveSet(fcc);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(fccms,9));	
+	transferFunctions.push_back(TransferFunction(Moves::frontCounterClockwise,fccms));
+
 
 	//backClockwise
-	TransferFunction bacw;
-	bacw.transferFaceMoves.push_back(backClockwise);
-	key = BasicBlock::getRKey(0,0,3);
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::topLeftBack,Positions::bottomLeftBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomRightBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightBack,Positions::topRightBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::topRightBack,Positions::topLeftBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleBack,Positions::middleLeftBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftBack,Positions::bottomMiddleBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::middleRightBack,key));
-	bacw.transferBlockMoves.push_back(createTransferMove(Positions::middleRightBack,Positions::topMiddleBack,key));
-	transferFunctions.push_back(bacw);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bacw.transferBlockMoves,10));
+	key = BasicBlock::getNRKey(0,0,3);
+	std::vector<TransferMoves> bacw;
+	bacw.push_back(createTransferMove(Positions::topLeftBack,Positions::bottomLeftBack,key));
+	bacw.push_back(createTransferMove(Positions::bottomLeftBack,Positions::bottomRightBack,key));
+	bacw.push_back(createTransferMove(Positions::bottomRightBack,Positions::topRightBack,key));
+	bacw.push_back(createTransferMove(Positions::topRightBack,Positions::topLeftBack,key));
+	bacw.push_back(createTransferMove(Positions::topMiddleBack,Positions::middleLeftBack,key));
+	bacw.push_back(createTransferMove(Positions::middleLeftBack,Positions::bottomMiddleBack,key));
+	bacw.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::middleRightBack,key));
+	bacw.push_back(createTransferMove(Positions::middleRightBack,Positions::topMiddleBack,key));
+	std::sort(bacw.begin(),bacw.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet bacwms = TransferMoveSet(bacw);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bacwms,10));	
+	transferFunctions.push_back(TransferFunction(Moves::backClockwise,bacwms));
 
 	//backCounterClockwise
-	TransferFunction bacc;
-	bacc.transferFaceMoves.push_back(backCounterClockwise);
-	key = BasicBlock::getRKey(0,0,1);
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::topLeftBack,Positions::topRightBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::topRightBack,Positions::bottomRightBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomLeftBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::bottomLeftBack,Positions::topLeftBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::topMiddleBack,Positions::middleRightBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::middleRightBack,Positions::bottomMiddleBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::middleLeftBack,key));
-	bacc.transferBlockMoves.push_back(createTransferMove(Positions::middleLeftBack,Positions::topMiddleBack,key));
-	transferFunctions.push_back(bacc);
-	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(bacc.transferBlockMoves,11));
+	key = BasicBlock::getNRKey(0,0,1);
+	std::vector<TransferMoves> bacc;
+	bacc.push_back(createTransferMove(Positions::topLeftBack,Positions::topRightBack,key));
+	bacc.push_back(createTransferMove(Positions::topRightBack,Positions::bottomRightBack,key));
+	bacc.push_back(createTransferMove(Positions::bottomRightBack,Positions::bottomLeftBack,key));
+	bacc.push_back(createTransferMove(Positions::bottomLeftBack,Positions::topLeftBack,key));
+	bacc.push_back(createTransferMove(Positions::topMiddleBack,Positions::middleRightBack,key));
+	bacc.push_back(createTransferMove(Positions::middleRightBack,Positions::bottomMiddleBack,key));
+	bacc.push_back(createTransferMove(Positions::bottomMiddleBack,Positions::middleLeftBack,key));
+	bacc.push_back(createTransferMove(Positions::middleLeftBack,Positions::topMiddleBack,key));
+	std::sort(bacc.begin(),bacc.end()); //reorder the list so that it matches the automated one
+	TransferMoveSet baccms = TransferMoveSet(bacc);
+	reverseTransferFunctionMap.insert(reverseTransferFunctionPair(baccms,11));	
+	transferFunctions.push_back(TransferFunction(Moves::backCounterClockwise,baccms));
 }
 
 TransferMoves Cube::createTransferMove(Positions oldPosition, Positions newPosition, rByte rotate)
@@ -297,6 +317,7 @@ void Cube::calculateAdvancedTransferFunctions()
 	time_t endTimer;
 	size_t beginGenerationIndex=0;  // used to keep from having to loop over transfer functions that have already been calculated.
 	size_t endGenerationIndex;
+
 	while(totalSize < 100000000) 	// keep adding new transfer functions until the totalSize > 100MB
 	{
 		// apply the basic moves to each transfer function in the last generation.  This should check every possible
@@ -306,68 +327,77 @@ void Cube::calculateAdvancedTransferFunctions()
 		startTimer=time(nullptr);
 		int lastGenerationAdditions=0;
 		int positionsConsideredInLastGeneration=0;
-		
-		endGenerationIndex = transferFunctions.size();  // I don't want the size changing as the loop progresses
+		endGenerationIndex = transferFunctions.size();  
 		for (size_t tfIndex=beginGenerationIndex; tfIndex < endGenerationIndex; ++tfIndex)
 		{
 			// only work on the last generation.  Otherwise, we duplicate all the previous generations again
-			if (transferFunctions[tfIndex].transferFaceMoves.size()==moves)
+			workingCube.SetCubeToSolved();
+			workingCube.move(tfIndex);
+			// apply each basic move to the current function to calculate the next move
+			for (size_t basicIndex=0; basicIndex < 12; ++basicIndex)
 			{
-				workingCube.SetCubeToSolved();
-				workingCube.move(tfIndex);
-				// apply each basic move to the current function to calculate the next move
-				for (size_t basicIndex=0; basicIndex < 12; ++basicIndex)
-				{
-					++positionsConsideredInLastGeneration;
-					// apply move to set
-					testCube.clone(&workingCube);
-					testCube.move(basicIndex);
-					// calculate the difference between a solved cube and the testCube
-					std::vector<TransferMoves> newBlockMoves = calculateTransferMove(solvedCube,testCube);
+				++positionsConsideredInLastGeneration;
+				// apply move to set
+				testCube.clone(&workingCube);
+				testCube.move(basicIndex);
+				// calculate the difference between a solved cube and the testCube
+				std::vector<TransferMoves> newBlockMoves = calculateTransferMove(solvedCube,testCube);
 
-					if (newBlockMoves.size()==0)
+				if (newBlockMoves.size()==0)
+				{
+					// this series of moves doesn't do anything so ignore it
+					++alreadyExistsCount;
+				}
+				else
+				{
+					// attempt to insert it into the reverseTransferFunctionMap
+					// this also checks to see if the function already exists.  If so ret.second is false
+					// and we don't need to add it again.  
+					TransferMoveSet newTransferMoveSet = TransferMoveSet(newBlockMoves);
+					std::pair<std::map<TransferMoveSet,int>::iterator,bool> 
+						ret = reverseTransferFunctionMap.insert(reverseTransferFunctionPair(newTransferMoveSet,transferFunctions.size()));
+
+					if (ret.second)
 					{
-						// this series of moves doesn't do anything so ignore it
-						++alreadyExistsCount;
+						// the insertion succeeded so the function was not already in the database.
+						// add the new transfer function.
+	
+						std::vector<Moves> newTFface;
+						//newTF.transferBlockMoves = newBlockMoves;
+						// add the face moves that were already calculated
+						for (size_t i=0; i < transferFunctions[tfIndex].transferFaceMoves.size(); ++i)
+						{
+							newTFface.push_back(transferFunctions[tfIndex].transferFaceMoves[i]);
+						}
+						// add the new face move
+						newTFface.push_back((Moves)basicIndex);
+						TransferFunction newTF(newTFface,newTransferMoveSet);
+						transferFunctions.push_back(newTF);
+						totalSize+= sizeof(TransferMoveSet);
+						totalSize+= sizeof(TransferMoves) * newTransferMoveSet.getSize();
+						totalSize+= sizeof(Moves) * newTF.transferFaceMoves.size();
+						lastGenerationAdditions++;
+						//if (lastGenerationAdditions%50 == 15)
+						//{
+							std::cout << std::endl;
+							int lastTransferIndex = transferFunctions.size()-1;
+							std::cout << showMoves(lastTransferIndex);
+							testCube.SetCubeToSolved();
+							testCube.move(lastTransferIndex);
+							std::cout << std::endl;
+							std::cout << testCube.toString(false);
+						//}
 					}
 					else
 					{
-						// attempt to insert it into the reverseTransferFunctionMap
-						// this also checks to see if the function already exists.  If so ret.second is false
-						// and we don't need to add it again.
-						std::pair<std::map<std::vector<TransferMoves>,int>::iterator,bool> ret = reverseTransferFunctionMap.insert(reverseTransferFunctionPair(newBlockMoves,transferFunctions.size()));
-
-						if (ret.second)
-						{
-							// the insertion succeeded so the function was not already in the database.
-							// add the new transfer function.
-							TransferFunction newTF;
-							std::vector<Moves> newTFface;
-							newTF.transferBlockMoves = newBlockMoves;
-							// add the face moves that were already calculated
-							for (size_t i=0; i < transferFunctions[tfIndex].transferFaceMoves.size(); ++i)
-							{
-								newTFface.push_back(transferFunctions[tfIndex].transferFaceMoves[i]);
-							}
-							// add the new face move
-							newTFface.push_back((Moves)basicIndex);
-							newTF.transferFaceMoves = newTFface;
-							transferFunctions.push_back(newTF);
-							totalSize+= sizeof(TransferMoves)  * newTF.transferBlockMoves.size();
-							totalSize+= sizeof(Moves) * newTF.transferFaceMoves.size();
-							lastGenerationAdditions++;
-						}
-						else
-						{
-							++alreadyExistsCount;
-						}
+						++alreadyExistsCount;
 					}
 				}
 			}
 		}
 		beginGenerationIndex=endGenerationIndex;
 		endTimer=time(nullptr);
-		double seconds = difftime(startTimer,endTimer);
+		int seconds = (int) difftime(endTimer, startTimer);
 		moves++; // just so that I know for testing how many moves deep we got
 	}
 }
@@ -415,16 +445,17 @@ bool Cube::isSameTransferMoves(std::vector<TransferMoves> mv1, std::vector<Trans
 }
 
 // Executes the specified move/transfer function on this cube.
-void Cube::move(int ti)
+void Cube::move(size_t ti)
 {
 	Cube oldCube(this); // load a copy of this cube into old cube
-	for (size_t i=0;i<transferFunctions[ti].transferBlockMoves.size();++i)
+	for (size_t i=0;i<transferFunctions[(byte)ti].transferBlockMoves.getSize();++i)
 	{
 		// get the old block
-		int oldBlock = (byte) transferFunctions[ti].transferBlockMoves[i].oldPosition;
-		int newBlock = (byte) transferFunctions[ti].transferBlockMoves[i].newPosition;
+		TransferMoves* newMove = transferFunctions[(byte)ti].transferBlockMoves.getMoves();
+		int oldBlock = (byte)newMove[i].oldPosition;
+		int newBlock = (byte) newMove[i].newPosition;
 		blocks2[newBlock] = oldCube.blocks2[oldBlock];
-		BasicBlock::rotate(blocks2[newBlock],transferFunctions[ti].transferBlockMoves[i].rotate);
+		BasicBlock::rotate(blocks2[newBlock],newMove[i].rotate);
 	}
 }
 
@@ -533,6 +564,38 @@ int Cube::doOptimumTransferFunction()
 {
 	return 0;
 }
+/*
+enum class Moves : unsigned char {topClockwise,topCounterClockwise,
+									bottomClockwise,bottomCounterClockwise,
+									rightClockwise,rightCounterClockwise,
+									leftClockwise,leftCounterClockwise,
+									frontClockwise,frontCounterClockwise,
+									backClockwise,backCounterClockwise};*/
+
+// prints out the moves for that transfer function
+std::string Cube::showMoves(size_t ti)
+{
+	std::string output = "";
+	size_t lastTRfunction=transferFunctions[(byte)ti].transferFaceMoves.size();
+	for (size_t i=0;i<lastTRfunction;++i)
+	{
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::topClockwise) output += "T";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::topCounterClockwise) output +=  "T'";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::bottomClockwise) output +=  "B";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::bottomCounterClockwise) output +=  "B'";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::rightClockwise) output +=  "R";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::rightCounterClockwise) output +=  "R'";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::leftClockwise) output +=  "L";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::leftCounterClockwise) output +=  "L'";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::frontClockwise) output +=  "F";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::frontCounterClockwise) output +=  "F'";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::backClockwise) output +=  "Ba";
+		if (transferFunctions[(byte)ti].transferFaceMoves[i] == Moves::backCounterClockwise) output +=  "Ba'";
+		if (i!=lastTRfunction-1) output +=  ",";
+	}
+	return output;
+}
+
 
 // used by toString to calculate each block color
 std::string Cube::getBlockFaceStr(Positions p,Orientation o,bool withBlockNum)

@@ -23,15 +23,13 @@ enum class Positions : unsigned char {topLeftFront,topLeftMiddle,topLeftBack,
 				noPositionMatches};
 
 // the basic moves for the faces of the cube
-enum Moves {topClockwise,topCounterClockwise,
-			bottomClockwise,bottomCounterClockwise,
-			rightClockwise,rightCounterClockwise,
-			leftClockwise,leftCounterClockwise,
-			frontClockwise,frontCounterClockwise,
-			backClockwise,backCounterClockwise};
-//			topDouble,bottomDouble,
-//			rightDouble,leftDouble,
-//			frontDouble,backDouble};
+enum class Moves : unsigned char {topClockwise,topCounterClockwise,
+									bottomClockwise,bottomCounterClockwise,
+									rightClockwise,rightCounterClockwise,
+									leftClockwise,leftCounterClockwise,
+									frontClockwise,frontCounterClockwise,
+									backClockwise,backCounterClockwise};
+
 
 // stores the colors for each of the faces.  Orientation is handled by other code.
 class Faces
