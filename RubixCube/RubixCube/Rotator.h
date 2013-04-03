@@ -56,6 +56,7 @@ public:
 
 	static Rotator getAxis(Rotator t,Rotator f);
 	static rByte difference(Rotator v1, Rotator v2);
+	rByte perpendicularPlane();
 
 	std::string toString();
 };

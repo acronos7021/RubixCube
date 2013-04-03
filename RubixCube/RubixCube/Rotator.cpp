@@ -38,6 +38,18 @@ void Rotator::loadOrientation(Orientation o)
 	ro=o;
 }
 
+
+
+rByte Rotator::perpendicularPlane()
+{
+	if (rxAxis[(byte) ro] == 6)
+		return 0xC0;  // rotation is on the xAxis
+	else if (ryAxis[(byte) ro] == 6)
+		return 0x18;  // rotation is on the yAxis
+	else
+		return 0x03; // rotation is on the zAxis
+}
+
 // even though it's not really intuitive to return an rByte here, it would
 // require Block to do a lot of calculations solve the same thing.
 // this only works if the rotation is on a single axis.
@@ -55,21 +67,21 @@ rByte Rotator::difference(Rotator v1,Rotator v2)
 	if ((rzAxis[(byte) v2.ro] != 6) && (rzAxis[(byte) v1.ro] != 6))
 		zAxis=(rzAxis[(byte) v2.ro] + 4 - rzAxis[(byte) v1.ro]) % 4;
 
-	// check and correct for opposite vectors.
-	if (xAxis==2)
-	{
-		// the two vectors are opposite each other. That means there are two paths that move between these
-		// two vectors.  We return the wrong answer if we return both of them, so pick the xAxis since it is first.
-		yAxis=0;
-		zAxis=0;
-	}
-	else if (yAxis==2)
-	{
-		// opposite vectors and x is already eliminated, so eliminate zAxis
-		zAxis=0;
-	}
+	//// check and correct for opposite vectors.
+	//if (xAxis==2)
+	//{
+	//	// the two vectors are opposite each other. That means there are two paths that move between these
+	//	// two vectors.  We return the wrong answer if we return both of them, so pick the xAxis since it is first.
+	//	yAxis=0;
+	//	zAxis=0;
+	//}
+	//else if (yAxis==2)
+	//{
+	//	// opposite vectors and x is already eliminated, so eliminate zAxis
+	//	zAxis=0;
+	//}
 	// else if (zAxis) isn't needed because it will already have been eliminated by one of the previous two choices.
-	return BasicBlock::getNRKey(xAxis,yAxis,zAxis);
+	return BasicBlock::getRKey(xAxis,yAxis,zAxis);
 
 	//if ((axis.ro==Orientation::top) || (axis.ro==Orientation::bottom))
 	//	return ((ryAxis[(byte) v2.ro] + 4 - ryAxis[(byte) v1.ro]) % 4)<<3; // rotate on y axis clockwise

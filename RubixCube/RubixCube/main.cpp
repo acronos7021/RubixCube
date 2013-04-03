@@ -9,6 +9,7 @@
 
 
 using namespace std;
+const bool isAlex=false;
 
 /******************************************************************************
 This is used to test the Cube class.  For details on the Cube class, start
@@ -18,7 +19,11 @@ int main(void)
 {
 	/*****************************************************************************/
 	// test Rotator::difference
-
+	if (isAlex)
+	{
+//		alexMain();
+		return 0;
+	}
 	Rotator tStart;
 	Rotator tRotate;
 	byte diff;
@@ -27,6 +32,8 @@ int main(void)
 	{
 		for (int x=0;x<=3;x++)
 		{
+			if (x==2) break;  // rotator.difference will report two rotations because it doen't know which without more information.
+			if ((o==(int)Orientation::left) || (o==(int)Orientation::right)) break;  // rotation along the axis doesn't create a difference
 			tStart.loadOrientation((Orientation)o);
 			tRotate.loadOrientation(tStart.getOrientation());
 			// do the rotations manually
@@ -34,14 +41,15 @@ int main(void)
 				tRotate.incXaxis();
 			// compare
 			diff = tStart.difference(tStart,tRotate);
-			// x is the default opposite, so it is the only one that should work correctly.
-			// but vectors that are pointing the direction of the orientation axis cannot be rotated.
-			if ((diff != BasicBlock::getNRKey(x,0,0)) && (o!=2) && (o!=3))// != tStart)) ///)&& (tStart != tRotate.getOpposite()))
+
+			if ((diff != BasicBlock::getNRKey(x,0,0))&&(x!=2))
  				throw std::exception("bad Rotator::difference");
 
 		}
 		for (int y=0;y<=3;y++)
 		{
+			if (y==2) break; // rotator.difference will report two rotations because it doen't know which without more information.
+			if ((o==(int)Orientation::top) || (o==(int)Orientation::bottom)) break;  // rotation along the axis doesn't create a difference
 			tStart.loadOrientation((Orientation)o);
 			tRotate.loadOrientation(tStart.getOrientation());
 			// do the rotations manually
@@ -49,12 +57,14 @@ int main(void)
 				tRotate.incYaxis();
 			// compare
 			diff = tStart.difference(tStart,tRotate);
-			// vectors on the same axis are difficult to construct a correct test for, so ignore them.
-			if ((diff!=BasicBlock::getNRKey(0,y,0)) && (tStart!=tRotate) && (tStart != tRotate.getOpposite()))
+
+			if ((diff!=BasicBlock::getNRKey(0,y,0)))
 				throw std::exception("bad Rotator::difference");
 		}
 		for (int z=0;z<=3;z++)
 		{
+			if (z==2) break; // rotator.difference will report two rotations because it doen't know which without more information.
+			if ((o==(int)Orientation::front) || (o==(int)Orientation::back)) break;  // rotation along the axis doesn't create a difference
 			tStart.loadOrientation((Orientation)o);
 			tRotate.loadOrientation(tStart.getOrientation());
 			// do the rotations manually
@@ -62,8 +72,8 @@ int main(void)
 				tRotate.incZaxis();
 			// compare
 			diff = tStart.difference(tStart,tRotate);
-			// vectors on the same axis are difficult to construct a correct test for, so ignore them.
-			if ((diff!=BasicBlock::getNRKey(0,0,z)) && (tStart!=tRotate) && (tStart != tRotate.getOpposite()))
+
+			if ((diff!=BasicBlock::getNRKey(0,0,z)))
 				throw std::exception("bad Rotator::difference");
 
 		}
@@ -82,7 +92,6 @@ int main(void)
 		for (int y=0;y<7;y++)
 			for (int z=0;z<7;z++)
 			{
-//				myBaseBlock.orientationVector = myTestBlock.orientationVector = orientVector(Orientation::top,Orientation::front);
 				rByte NRkey= BasicBlock::getNRKey(x,y,z);
 				BasicBlock::rotate(myTestBlock,NRkey);
 				// this should calculate the difference between the two vectors
@@ -188,9 +197,10 @@ int main(void)
 	myCube.move((size_t) Moves::backClockwise);
 	std::cout << myCube.toString(false);
 
+
 	test = Cube::unSolved(myCube);
 
 	myCube.calculateAdvancedTransferFunctions();
-
 	system("pause");
+
 }

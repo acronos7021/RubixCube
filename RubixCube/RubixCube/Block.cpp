@@ -259,15 +259,58 @@ void BasicBlock::rotate(Block &block, rByte offsetVector)
 // rotations that would be required to move from one to the other.
 rByte BasicBlock::deRotate(orientVector oldRotationVector, orientVector newRotationVector)
 {
-	rByte newPlane = Rotator::difference(newRotationVector.tVector,newRotationVector.fVector);
-	rByte oldPlane = Rotator::difference(oldRotationVector.tVector,oldRotationVector.fVector);
 	rByte tDiff = Rotator::difference(newRotationVector.tVector,oldRotationVector.tVector);
-	rByte fDiff = Rotator::difference(newRotationVector.fVector,newRotationVector.fVector);
+	rByte fDiff = Rotator::difference(newRotationVector.fVector,oldRotationVector.fVector);
+	if (tDiff==0)
+		return fDiff & oldRotationVector.tVector.perpendicularPlane();
+	else if (fDiff==0)
+		return tDiff & oldRotationVector.fVector.perpendicularPlane();
+	else if (tDiff==fDiff)
+		return tDiff;
+	else if (((tDiff==0x02) || (tDiff==0x10) || (tDiff==0x80))
+		&& ((fDiff==0x02) || (fDiff==0x10) || (fDiff==0x80)))
+	{
+		// solution is a double rotation.  The correct rotation is the axis they have in common.
+		return tDiff & fDiff; 
+	}	
 
-	// if either of them rotates in a directions, then that direction is important
-	// so, combine them.
-	return tDiff | fDiff;
+	// all of the simple cases are gone.  Rotation is accross two unrelated axis
+	// it will require manual manipulation
+	rByte xyzDiff=tDiff;  //used to allow the manipulation of tDiff without loosing the original value
+	Rotator fRotator(roByteConvert[fDiff]);
 
+	// move the tVector first to find the position of the fVector
+	if (tDiff & 0x03)
+	{
+		// rotation is on the zAxis
+		while (xyzDiff>0)
+		{
+			fRotator.incYaxis();
+			xyzDiff--;  // decrement the zAxis count
+		}
+	}
+	else if (tDiff & 0x18)
+	{
+		// rotation is on the yAxis
+		while(xyzDiff>0)
+		{
+			fRotator.incYaxis();
+			xyzDiff -= 0x08; // decrement the yAxis count
+		}
+	}
+	else if (tDiff & 0xC0)
+	{
+		// rotation is on the xAxis
+		while (xyzDiff>0)
+		{
+			fRotator.incXaxis();
+			xyzDiff -= 0x40;
+		}
+	}
+	// fVector should now be in the orientation it would be after the tDiff rotation.  Find the new fDiff
+	fDiff = Rotator::difference(newRotationVector.fVector,newRotationVector.fVector);
+	return normalizer[tDiff | fDiff]; // Combine them since both rotations are on different axis and we have corrected the correct order of rotation
+}
 	////Rotator newRotator;
 	////Rotator oldRotator;
 	//if (oldRotationVector.tVector==newRotationVector.tVector)
@@ -290,7 +333,6 @@ rByte BasicBlock::deRotate(orientVector oldRotationVector, orientVector newRotat
 	//		return normalizer[Rotator::difference(newRotationVector.tVector,oldRotationVector.tVector)];
 	//	}
 	//}
-}
 
 
 	//oByte newOByte = getOKey(newRotationVector.tVector,newRotationVector.fVector);
@@ -392,7 +434,7 @@ orientVector BasicBlock::getOrientation(oByte oKey)
 // This function resolves all orientations and outputs them to a normalizer array. This allows for
 // a quick way to simplify any rotation path to it's simplest version and also restricts
 // the possible rotations to only 24.  It converts the 64 paths into 24 orientations by creating
-// a sort of hash.
+// a map.
 void BasicBlock::createNormalizers()
 {
 	// clear the normalizer and oVector lists so the empty selection will show
