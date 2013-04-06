@@ -1,7 +1,11 @@
 #pragma once
 
+#include <string>
+#include <map>
+#include <vector>
 #include "Block.h"
 #include "Enums.h"
+#include "TransferMoves.h"
 
 /*********************************************************************
 This class is intended to model a Rubix cube.  It keeps track of the current state, and it
@@ -27,6 +31,25 @@ all of the transfer functions to be calculated ahead of time.
 
 *********************************************************************/
 
+
+struct TransferFunction
+{
+	TransferMoveSet transferBlockMoves;
+	std::vector<Moves> transferFaceMoves;
+
+	TransferFunction(Moves tfm, TransferMoveSet tbm)
+	{
+		transferBlockMoves = tbm;
+		transferFaceMoves.push_back(tfm);
+	}
+
+	TransferFunction(std::vector<Moves> tfm,TransferMoveSet tbm)
+	{
+		transferBlockMoves = tbm;
+		transferFaceMoves = tfm;
+	}
+};
+
 class Cube
 {
 public:
@@ -39,15 +62,15 @@ public:
 	// copys the state of the referenced cube into this one.
 	void clone(Cube* cb);
 	// Executes the specified move/transfer function on this cube.
-	void move(Moves mv);
+	void move(size_t transferFunctionIndex);
 	// returns true if this Cube and the refrenced one are the same.
 	bool equals(Cube* cb);
 	// returns the number of blocks that are in the correct position and orientation
-	int solved();
+	int unSolved();
+	static int Cube::unSolved(Cube c);
 	// Adds the specified block to the cube in the specified position.  It checks to make
 	// sure no block is added twice and that the block actually exists on a Rubix cube.
-	void addBlock(Positions position, Color top, Color bottom, Color left, Color right, 
-		Color front, Color back);
+	void addBlock(Positions position, Faces f);
 	// Checks to make sure this cube has all of the blocks filled in and ready.  If there are any
 	// blocks missing, it returns an exception that lists them.
 	bool checkCube();
@@ -58,56 +81,39 @@ public:
 	// same thing as getOpti... except it goes ahead and makes the move series.
 	int doOptimumTransferFunction();
 
+	// move the cube to predefined states
+	void SetCubeToSolved();  // fills the cube with all blocks in the home position
+	void ClearCube(); // sets the cube to empty or void
+	
+	// returns the current state of the cube as a string
+	std::string toString(bool withBlockNums);
+	std::string showMoves(size_t ti);
+
+	void calculateAdvancedTransferFunctions();
 private:
-	// One of the many tradeoffs for speed.  A fixed element size and unchanging array size is faster
-	// than one that has a variable list of moves attached to it.  By moving the list of moves
-	// to another fixed size array, I gain some speed.  Loading this series once
-	// when the first cube is instantiated allows very fast access to the transfer functions.
-	struct TransferFunctions
-	{
-		// This lists how the blocks move as a result of the function.  It jumps to the
-		// end state of the cube after all of the face Moves have been made.
-		unsigned int startBlockMoves,endBlockMoves; 
-		// This is the list of faces moves to create the function
-		unsigned int startFaceMoves,endFaceMoves; 
-	};
+	TransferMoves createTransferMove(Positions oldPosition, Positions newPosition, rByte rotate);
 
-	struct TransferMoves
-	{
-		unsigned char position;
-		unsigned char orientation;
-	};
-
-	static TransferMoves* transferBlockMoves; //lists how the individual blocks move in a transfer
-	static char* transferFaceMoves; //lists the face Moves that would be required to do the transfer
-	static TransferFunctions* transferFunctions; // index for the previous two lists
-
-	// this stores the current status of a specific block.
-	struct BlockStatus
-	{
-		Positions pos;
-		Orientation ori;
-
-		bool equals(BlockStatus bs)
-		{
-			if ((pos == bs.pos)&&(ori == bs.ori))
-				return true;
-			else
-				return false;
-		}
-	};
-
-	// The list of the current state of all of the blocks
-	BlockStatus blockStatus[20];
+	static std::vector<TransferFunction> transferFunctions;
+	static std::map<TransferMoveSet,int> reverseTransferFunctionMap;  //,std::hash<int>
+	typedef std::pair<const TransferMoveSet,int> reverseTransferFunctionPair;
 
 	// Stores the data on the 20 blocks that make up the moving portion of the cube.  This is not
 	// the current state of the cube, but rather the building blocks needed to portray the current state.
-	static Block* blocks;
+	static BasicBlock homeBlocks[20];
+	Block blocks2[20];
 
 	// These are initialized once and shared among all of the instances of Cube trough the above
 	// static variables.
-	static bool initialized; // the initial value is set to false in the Cube.cpp file
-	void initBlocks();
-	void initTransferFunctions();
 
+	// initialization
+	static bool initialized; // ensures everything is only initialized once
+	void initHomeBlocks();
+	void initBasicTransferFunctions();
+
+	std::vector<TransferMoves> calculateTransferMove(Cube oldCube,Cube newCube);
+	bool isSameTransferMoves(std::vector<TransferMoves> mv1, std::vector<TransferMoves> mv2);
+
+	// used by toString
+	std::string getBlockFaceStr(Positions p,Orientation o,bool withBlockNum);
+	std::string convertColorToLetter(Color c);
 };

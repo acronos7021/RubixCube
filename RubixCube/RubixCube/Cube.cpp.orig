@@ -522,6 +522,13 @@ int Cube::unSolved()
 {
 	int unSolvedBlocks=20;
 	for (int i=0;i<20;++i)
+<<<<<<< HEAD
+	{
+		if (homeBlocks[blocks2[i].homeBlock].isHome(blocks2[i]))  // needs work
+			solvedBlocks++;
+	}
+	return 20 - solvedBlocks;
+=======
 		if ((blocks2[i].homeBlock==i)&&(orientVector::isHome(blocks2[i].orientationVector)))
 			unSolvedBlocks--;
 	return unSolvedBlocks;
@@ -534,6 +541,7 @@ int Cube::unSolved(Cube c)
 		if ((c.blocks2[i].homeBlock==i)&&(orientVector::isHome(c.blocks2[i].orientationVector)))
 			unSolvedBlocks--;
 	return unSolvedBlocks;
+>>>>>>> da8ae6ec093cf481c6883f7718b967f3cc952c8b
 }
 
 

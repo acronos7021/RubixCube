@@ -1,69 +1,75 @@
 #pragma once
-
+#include <iostream>
+#include <stdexcept>
+#include <string>
 #include "Enums.h"
+#include "Rotator.h"
 
-/***********************************************************************************
-	Since cubes can rotate in 3 directions, two vectors are needed to describe the orientation.
-	There are actually 24 possible orientations for each block.  There are six faces and 4 ways
-	to hold each face when it is facing you.  The first vector is the home top(blue), the second 
-	vector is the home front(white).  Rotate is used a lot so I need it to be fast.  I do this
-	using 3 variables to represent the three axis that it can rotate around and the amount in 
-	each direction.  Each variable would be from 0-3 with 0 being the home position.  
-	I use 6 bits of a 8 bit integer to represent the orientation using 2 bits for each direction.
-	I just do a normal add of the original orientation and and offset for the rotation amount.
-	
-
-***********************************************************************************/
-
-class Faces
+/****************************************************************
+Block is used to store state of an individual block.  It doesn't
+have any functions attached to it because I need it to be small
+and fast.  The functions to manipulate Block are in BasicBlock
+****************************************************************/
+struct Block
 {
-public:
-	Color top, bottom, left, right, front, back;
-	Faces copy()
-	{
-		Faces ret;
-		ret.top=top;
-		ret.bottom = bottom;
-		ret.left = left;
-		ret.right = right;
-		ret.front = front;
-		ret.back = back;
-		return ret;
-	}
-
-	bool equal(Faces f)
-	{
-		if ((top == f.top)&&
-				(bottom == f.bottom)&&
-				(left == f.left)&&
-				(right == f.right)&&
-				(front == f.front)&&
-				(back == f.back))
-			return true;
-		else
-			return false;
-	}
+	byte homeBlock;
+	orientVector orientationVector;
+	Positions position;
 };
 
 
-class Block
+class BasicBlock
 {
-private:  // make sure the block is created with the proper constructor
-	Block(void);
+private:  
+	static bool initialized;
+	static rByte normalizer[256];
+	static rByte oVector[256];
+	static oByte roByteConvert[256];
+	void createNormalizers();
+
+
+	//Positions currentPosition;
+	//orientVector currentOrientation;
+	Faces faces;
 
 public:
-	~Block(void);
-	Block(Positions home,Faces f);
+	BasicBlock(void);
+	~BasicBlock(void);
+	BasicBlock(Positions home,Faces f);
+	void initBlock(Positions home, Faces f);
+	Positions homePosition;
+	orientVector homeOrientation;
+	orientVector checkBlock(Faces f);
+	Block loadBlock(byte homeBlock,Positions p,orientVector o);
+	//bool loaded; // is true if the block has been assigned.  If the BasicBlock is just default initialized
+				 // it returns false
 
-	Positions homePosition;	
-	Faces faces;
+	//Rotator currentRotation;  // defaults to homePosition on creation
+
 	bool equalFaces(Faces f);
+	static bool equalOrientation(Block b1, Block b2);
+	bool isHome(Block b);
+	Positions getHome();
+	Faces getFaces(orientVector o);
+
+	Faces remapFaces(orientVector selVect);
+	Faces addFaceColor(Faces &f, Orientation o, Color c);
+
+	static bool equalBlocks(Block b1, Block b2);
 
 
-	// returns -1 if there is no orientation that matches the color pattern.
-	int getOrientation(Faces f);
-	unsigned char rotate(int currentVector, int offsetVector);
 
+
+	//rByte rotate(rByte currentVector, rByte offsetVector);
+	static void rotate(Block &block,rByte offsetVector); // rotates by the amount in offsetVector
+	static rByte deRotate(orientVector oldRotationVector, orientVector newRotationVector);  // reverses a rotation
+
+	static rByte getNRKey(int xRotations,int yRotations, int zRotations);
+	static rByte getRKey(int xRotations, int yRotations, int zRotations);
+	void getRotations(rByte key, int &xRotations, int &yRotations, int &zRotations);
+	static oByte getOKey(Rotator tVector, Rotator fVector);
+	static oByte getOKey(rByte RKey);
+	orientVector getOrientation(oByte key);
 };
 
 
