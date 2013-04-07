@@ -64,6 +64,7 @@
   <ItemGroup>
     <ClInclude Include="Block.h" />
     <ClInclude Include="Cube.h" />
+    <ClInclude Include="CubeInterface.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="TransferMoves.h" />
@@ -71,6 +72,7 @@
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="CubeInterface.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Rotator.cpp" />
     <ClCompile Include="TransferMoves.cpp" />

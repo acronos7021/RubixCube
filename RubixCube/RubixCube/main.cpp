@@ -7,23 +7,31 @@
 #include "Rotator.h"
 #include "Block.h"
 
-
 using namespace std;
-const bool isAlex=false;
+
+#define _ALEX_MAIN_  //comment this out to run Brians main
+
+#ifdef _ALEX_MAIN_
+#include "CubeInterface.h" // alex's header
+
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int iCmdShow)
+{
+	CubeInterface ci(hInstance);
+
+	return ci.msg_loop();
+}
+
+#else
 
 /******************************************************************************
 This is used to test the Cube class.  For details on the Cube class, start
 with "Cube.h"
 ******************************************************************************/
-int main(void)
+int main()
 {
 	/*****************************************************************************/
 	// test Rotator::difference
-	if (isAlex)
-	{
-//		alexMain();
-		return 0;
-	}
+
 	Rotator tStart;
 	Rotator tRotate;
 	byte diff;
@@ -204,3 +212,5 @@ int main(void)
 	system("pause");
 
 }
+
+#endif

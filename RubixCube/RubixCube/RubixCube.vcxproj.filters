@@ -30,6 +30,9 @@
     <ClInclude Include="TransferMoves.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CubeInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp">
@@ -45,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TransferMoves.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
