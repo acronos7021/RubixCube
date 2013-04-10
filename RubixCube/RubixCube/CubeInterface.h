@@ -32,8 +32,17 @@ class CubeInterface
 
 	class cell
 	{
+	#define LEFT_SIDE	0
+	#define FRONT_SIDE	1
+	#define RIGHT_SIDE	2
+	#define BACK_SIDE	3
+	#define TOP_SIDE	4
+	#define BOTTOM_SIDE	5
+
 		float _fx, _fy, _fz;
 		int _name;
+		int _side;
+		int _pos;
 
 		cell_color _c;
 	public:
@@ -50,8 +59,15 @@ class CubeInterface
 
 		void reset_color() { _c.reset_color(); }
 
+		void set_side(int side) { _side = side; }
+
+		void set_position(int pos) { _pos = pos; }
+
 		//call openGL code to render flat cell on screen
 		void draw_flat();
+
+		//call openGL code to render 3d cell on screen
+		void draw_3d();
 
 	};
 
@@ -140,6 +156,8 @@ class CubeInterface
 
 	//identify what cell has been clicked
 	void gl_select(int x, int y);
+
+	void process_hits(GLint hits, GLuint buff[]);
 
 	//resets all cells to color gray
 	void clear_colors();

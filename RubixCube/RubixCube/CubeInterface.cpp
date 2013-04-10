@@ -71,6 +71,80 @@ void CubeInterface::cell::draw_flat()
 	glPopMatrix();
 }
 
+void CubeInterface::cell::draw_3d()
+{
+	glLoadName(_name);
+	glPushMatrix();
+
+		switch(_side)
+		{
+		case LEFT_SIDE:
+			glRotatef(-90,0.0f,1.0f,0.0f);
+			break;
+		case RIGHT_SIDE:
+			glRotatef(90,0.0f,1.0f,0.0f);
+			break;
+		case BACK_SIDE:
+			glRotatef(180,0.0f,1.0f,0.0f);
+			break;
+		case TOP_SIDE:
+			glRotatef(-90,1.0f,0.0f,0.0f);
+			break;
+		case BOTTOM_SIDE:
+			glRotatef(90,1.0f,0.0f,0.0f);
+			break;
+		}
+
+		switch(_pos)
+		{
+		case 0:
+			glTranslatef(-2.0f,2.0f,3.0f);
+			break;
+		case 1:
+			glTranslatef(0,2.0f,3.0f);
+			break;
+		case 2:
+			glTranslatef(2.0f,2.0f,3.0f);
+			break;
+		case 3:
+			glTranslatef(-2.0f,0,3.0f);
+			break;
+		case 4:
+			glTranslatef(0,0,3.0f);
+			break;
+		case 5:
+			glTranslatef(2.0f,0,3.0f);
+			break;
+		case 6:
+			glTranslatef(-2.0f,-2.0f,3.0f);
+			break;
+		case 7:
+			glTranslatef(0,-2.0f,3.0f);
+			break;
+		case 8:
+			glTranslatef(2.0f,-2.0f,3.0f);
+			break;
+		}
+
+		
+		glColor3f(_c.r,_c.g,_c.b);
+		glBegin(GL_QUADS);
+			glVertex3f(-1.0f, 1.0f, 0.0f);
+			glVertex3f( 1.0f, 1.0f, 0.0f);
+			glVertex3f( 1.0f,-1.0f, 0.0f);
+			glVertex3f(-1.0f,-1.0f, 0.0f);
+		glEnd();
+
+		glColor3f(0,0,0);
+		glBegin(GL_LINE_LOOP);
+			glVertex3f(-1.0f, 1.0f, 0.0f);
+			glVertex3f( 1.0f, 1.0f, 0.0f);
+			glVertex3f( 1.0f,-1.0f, 0.0f);
+			glVertex3f(-1.0f,-1.0f, 0.0f);
+		glEnd();
+	glPopMatrix();
+}
+
 LRESULT CALLBACK CubeInterface::WndProcFrame (HWND frame_wnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CubeInterface *ci = NULL;
@@ -101,11 +175,10 @@ LRESULT CALLBACK CubeInterface::WndProcFrame (HWND frame_wnd, UINT message, WPAR
 
 	case WM_SIZE:
 		ci->size_frame_window();
-		return 0;
-
-	default:
-		return DefWindowProc(frame_wnd, message, wParam, lParam);
+		return 0;	
 	}
+
+	return DefWindowProc(frame_wnd, message, wParam, lParam);
 }
 
 LRESULT CALLBACK CubeInterface::WndProcControls (HWND control_wnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -143,7 +216,6 @@ LRESULT CALLBACK CubeInterface::WndProcControls (HWND control_wnd, UINT message,
 			break;
 		}
 		break;
-
 	}
 
 	return DefWindowProc(control_wnd, message, wParam, lParam);
@@ -362,7 +434,7 @@ void CubeInterface::resize_gl_scene(RECT frame_rect, RECT control_rect)		// Resi
 	glLoadIdentity();									// Reset The Modelview Matrix
 }
 
-void CubeInterface::init_gl()										// All Setup For OpenGL Goes Here
+void CubeInterface::init_gl()							// All Setup For OpenGL Goes Here
 {
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);				// Black Background
@@ -379,23 +451,27 @@ void CubeInterface::draw_gl_scene()
 		
 
 	glPushMatrix();
-	glTranslatef(0,0.0f,-30.0f);
+	glTranslatef(0,10.0f,-50.0f);
 
 	for(int i = 0; i < 54; i++)
 		_cells[i].draw_flat();
 
 	glPopMatrix();
 
-	/*
+	
 	glPushMatrix();
+	glTranslatef(0,-5.0f,-25.0f);
 	//the next two will rotate the 3d cube
 	glRotatef(_xrot,1.0f,0.0f,0.0f);
 	glRotatef(_yrot,0.0f,1.0f,0.0f);
 
 	//3d cube render will go here
+	for(int i = 0; i < 54; i++)
+		_cells[i].draw_3d();
+
 
 	glPopMatrix();
-	*/
+	
 
 	SwapBuffers(_hDC);
 }
@@ -450,11 +526,31 @@ void CubeInterface::gl_select(int x, int y)
  
 	//process hit
 	if(hits != 0)
-		_cells[buff[3]].set_color(_selected_color);
+		process_hits(hits,buff);
 
 	glMatrixMode(GL_MODELVIEW);
 
 	draw_gl_scene();
+}
+
+void CubeInterface::process_hits(GLint hits, GLuint buff[])
+{
+	GLuint *ptr = (GLuint *) buff;
+	GLuint minZ = 0xffffffff;
+	GLuint names,numberOfNames, *ptrNames;
+	for (int i = 0; i < hits; i++)
+	{	
+		names = *ptr;
+		ptr++;
+		if (*ptr < minZ)
+		{
+			numberOfNames = names;
+			minZ = *ptr;
+			ptrNames = ptr+2;
+		}
+		ptr += names+2;
+	}
+	_cells[*ptrNames].set_color(_selected_color);
 }
 
 void CubeInterface::clear_colors()
@@ -468,27 +564,27 @@ void CubeInterface::clear_colors()
 
 void CubeInterface::set_up_gl_context()
 {
-	int		PixelFormat;						// Holds The Results After Searching For A Match
-	static	PIXELFORMATDESCRIPTOR pfd=				// pfd Tells Windows How We Want Things To Be
+	int		PixelFormat;				// Holds The Results After Searching For A Match
+	static	PIXELFORMATDESCRIPTOR pfd=	// pfd Tells Windows How We Want Things To Be
 	{
-		sizeof(PIXELFORMATDESCRIPTOR),				// Size Of This Pixel Format Descriptor
-		1,											// Version Number
-		PFD_DRAW_TO_WINDOW |						// Format Must Support Window
-		PFD_SUPPORT_OPENGL |						// Format Must Support OpenGL
-		PFD_DOUBLEBUFFER,							// Must Support Double Buffering
-		PFD_TYPE_RGBA,								// Request An RGBA Format
-		16,											// Select Our Color Depth
-		0, 0, 0, 0, 0, 0,							// Color Bits Ignored
-		0,											// No Alpha Buffer
-		0,											// Shift Bit Ignored
-		0,											// No Accumulation Buffer
-		0, 0, 0, 0,									// Accumulation Bits Ignored
-		16,											// 16Bit Z-Buffer (Depth Buffer)  
-		0,											// No Stencil Buffer
-		0,											// No Auxiliary Buffer
-		PFD_MAIN_PLANE,								// Main Drawing Layer
-		0,											// Reserved
-		0, 0, 0										// Layer Masks Ignored
+		sizeof(PIXELFORMATDESCRIPTOR),	// Size Of This Pixel Format Descriptor
+		1,								// Version Number
+		PFD_DRAW_TO_WINDOW |			// Format Must Support Window
+		PFD_SUPPORT_OPENGL |			// Format Must Support OpenGL
+		PFD_DOUBLEBUFFER,				// Must Support Double Buffering
+		PFD_TYPE_RGBA,					// Request An RGBA Format
+		16,								// Select Our Color Depth
+		0, 0, 0, 0, 0, 0,				// Color Bits Ignored
+		0,								// No Alpha Buffer
+		0,								// Shift Bit Ignored
+		0,								// No Accumulation Buffer
+		0, 0, 0, 0,						// Accumulation Bits Ignored
+		16,								// 16Bit Z-Buffer (Depth Buffer)  
+		0,								// No Stencil Buffer
+		0,								// No Auxiliary Buffer
+		PFD_MAIN_PLANE,					// Main Drawing Layer
+		0,								// Reserved
+		0, 0, 0							// Layer Masks Ignored
 	};
 
 	_hDC = GetDC(_gl_wnd);
@@ -547,6 +643,55 @@ void CubeInterface::init_cells()
 			count++;
 			count2++;
 		}
+	}
+
+	count = 0;
+	count2 = 0;
+	int pos = 0;
+	for(int i = 0; i < 36; i++)
+	{
+		if(count < 3)
+			_cells[i].set_side(LEFT_SIDE);
+		else if(count < 6)
+			_cells[i].set_side(FRONT_SIDE);
+		else if(count < 9)
+			_cells[i].set_side(RIGHT_SIDE);
+		else if(count < 12)
+			_cells[i].set_side(BACK_SIDE);
+
+		_cells[i].set_position(pos);
+
+		pos++;
+		count++;
+		count2++;
+
+		if(pos == 3 && count2 < 12)
+			pos = 0;
+		else if(pos == 6 && count2 < 24)
+			pos = 3;
+		else if(pos == 9 && count2 < 36)
+			pos = 6;
+
+		if(count == 12)
+			count = 0;
+	}
+
+	count = 0;
+	pos = 0;
+	for(int i = 36; i < 54; i++)
+	{
+		if(count < 9)
+			_cells[i].set_side(TOP_SIDE);
+		else
+			_cells[i].set_side(BOTTOM_SIDE);
+
+		_cells[i].set_position(pos);
+
+		pos++;
+		if(pos == 9)
+			pos = 0;
+
+		count++;
 	}
 }
 
