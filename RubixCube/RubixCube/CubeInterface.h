@@ -10,6 +10,13 @@ class CubeInterface
 #define CUBE_CONTROLS_WIN_CLASS "CUBE_CONTROLS_WIN_CLASS"
 #define CUBE_GL_WIN_CLASS		"CUBE_GL_WIN_CLASS"
 
+#define KEY_B	0x42
+#define KEY_G	0x47
+#define KEY_O	0x4F
+#define KEY_R	0x52
+#define KEY_W	0x57
+#define KEY_Y	0x59
+
 	//struct to hold RGB values
 	struct cell_color
 	{
@@ -19,6 +26,7 @@ class CubeInterface
 	#define C_WHITE		3
 	#define C_RED		4
 	#define C_ORANGE	5
+	#define C_GREY		6
 
 		float r,g,b;
 		cell_color() : r(0.5f), g(0.5f), b(0.5f) {}
@@ -26,8 +34,6 @@ class CubeInterface
 		void set_color(const cell_color& c);
 
 		void set_color(int c);
-
-		void reset_color();
 	};
 
 	class cell
@@ -54,10 +60,10 @@ class CubeInterface
 
 		void set_color(cell_color c) { _c.set_color(c); }
 
+		void set_color(int c) { _c.set_color(c); }
+
 		//set drawing coordinates for flat x y z
 		void set_flat_coord(float x, float y, float z) { _fx = x; _fy = y; _fz = z; }
-
-		void reset_color() { _c.reset_color(); }
 
 		void set_side(int side) { _side = side; }
 
@@ -94,6 +100,7 @@ class CubeInterface
 	//handle to win32 API push button
 	HWND _solve_btn_wnd;
 	HWND _reset_btn_wnd;
+	HWND _center_btn_wnd;
 
 	//handle to a device context
 	//this will hold the gl_wnd DC
@@ -138,6 +145,8 @@ class CubeInterface
 	//identify witch radio button was pushed
 	void process_button_click(LPARAM lParam);
 
+	void process_key(WPARAM wParam);
+
 	//get rectangle for client area of my 3 windows
 	void get_rects(RECT *frame_rect, RECT *gl_rect, RECT *control_rect);
 
@@ -160,7 +169,9 @@ class CubeInterface
 	void process_hits(GLint hits, GLuint buff[]);
 
 	//resets all cells to color gray
-	void clear_colors();
+	void reset();
+
+	void center_cube();
 
 	//this is where we tell openGL in which device context
 	//the rendering will take place

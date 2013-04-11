@@ -38,14 +38,10 @@ void CubeInterface::cell_color::set_color(int c)
 	case C_ORANGE:
 		r = 1.0f; g = 0.5f; b = 0;
 		break;
+	case C_GREY:
+		r = 0.5f; g = 0.5f; b = 0.5f;
+		break;
 	}
-}
-
-void CubeInterface::cell_color::reset_color()
-{
-	r = 0.5f;
-	g = 0.5f;
-	b = 0.5f;
 }
 
 void CubeInterface::cell::draw_flat()
@@ -157,15 +153,19 @@ LRESULT CALLBACK CubeInterface::WndProcFrame (HWND frame_wnd, UINT message, WPAR
 		ci = (CubeInterface*)((CREATESTRUCT*)lParam)->lpCreateParams;
 
 		//Actual line that stores my class in the window's user data
-		SetWindowLong(frame_wnd,GWL_USERDATA,(LONG)ci);
+		SetWindowLongPtr(frame_wnd,GWLP_USERDATA,(LONG)ci);
 
 		ci->create_child_windows(frame_wnd);
+		ci->set_up_gl_context();
+
+		SendMessage(ci->_blue_radio_wnd,BM_CLICK,(WPARAM)NULL,(WPARAM)NULL);
+		ci->_selected_color.set_color(C_BLUE);
 
 		return 0;
 	}
 
 	//Retrieve my class
-	ci = (CubeInterface*)GetWindowLong(frame_wnd,GWL_USERDATA);
+	ci = (CubeInterface*)GetWindowLongPtr(frame_wnd,GWLP_USERDATA);
 
 	switch (message)
 	{
@@ -175,7 +175,7 @@ LRESULT CALLBACK CubeInterface::WndProcFrame (HWND frame_wnd, UINT message, WPAR
 
 	case WM_SIZE:
 		ci->size_frame_window();
-		return 0;	
+		return 0;
 	}
 
 	return DefWindowProc(frame_wnd, message, wParam, lParam);
@@ -195,12 +195,12 @@ LRESULT CALLBACK CubeInterface::WndProcControls (HWND control_wnd, UINT message,
 		ci->create_controls(control_wnd);
 
 		//Actual line that stores my class in the window's user data
-		SetWindowLong(control_wnd,GWL_USERDATA,(LONG)ci);
+		SetWindowLongPtr(control_wnd,GWLP_USERDATA,(LONG)ci);
 		return 0;
 	}
 
 	//Retrieve my class
-	ci = (CubeInterface*)GetWindowLong(control_wnd,GWL_USERDATA);
+	ci = (CubeInterface*)GetWindowLongPtr(control_wnd,GWLP_USERDATA);
 
 	switch (message)
 	{
@@ -233,12 +233,12 @@ LRESULT CALLBACK CubeInterface::WndProcGL (HWND gl_wnd, UINT message, WPARAM wPa
 		ci = (CubeInterface*)((CREATESTRUCT*)lParam)->lpCreateParams;
 
 		//Actual line that stores my class in the window's user data
-		SetWindowLong(gl_wnd,GWL_USERDATA,(LONG)ci);
+		SetWindowLongPtr(gl_wnd,GWLP_USERDATA,(LONG)ci);
 		return 0;
 	}
 
 	//Retrieve my class
-	ci = (CubeInterface*)GetWindowLong(gl_wnd,GWL_USERDATA);
+	ci = (CubeInterface*)GetWindowLongPtr(gl_wnd,GWLP_USERDATA);
 
 	switch (message)
 	{
@@ -246,18 +246,17 @@ LRESULT CALLBACK CubeInterface::WndProcGL (HWND gl_wnd, UINT message, WPARAM wPa
 		ci->resize_gl_window();
 		return 0;
 
-	case WM_PAINT:
-		ci->draw_gl_scene();
-		break;
-
 	case WM_MOUSEMOVE:
 		ci->mouse_move_proc(wParam,lParam);
 		break;
 
 	case WM_LBUTTONDOWN:
+		SetFocus(ci->_gl_wnd);
 		ci->gl_select(LOWORD(lParam),HIWORD(lParam));
 		break;
-		
+	case WM_KEYDOWN:
+		ci->process_key(wParam);
+		break;
 	}
 
 	return DefWindowProc(gl_wnd, message, wParam, lParam);
@@ -336,8 +335,12 @@ void CubeInterface::create_controls(HWND control_wnd)
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,10, 200, 100, 30,
 		control_wnd, NULL, _hInstance, NULL);
 
-	 _reset_btn_wnd = CreateWindow ("BUTTON", "Reset",
+	_center_btn_wnd = CreateWindow ("BUTTON", "Center Cube",
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,10, 240, 100, 30,
+		control_wnd, NULL, _hInstance, NULL);
+
+	 _reset_btn_wnd = CreateWindow ("BUTTON", "Reset",
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,10, 280, 100, 30,
 		control_wnd, NULL, _hInstance, NULL);
 }
 
@@ -361,19 +364,17 @@ void CubeInterface::mouse_move_proc(WPARAM wParam, LPARAM lParam)
 	
 	_mouse_x = x;
 	_mouse_y = y;
-
-	draw_gl_scene();
 }
 
 void CubeInterface::size_frame_window()
 {
-	SendMessage(_control_wnd,WM_SIZE,NULL,NULL);
-	SendMessage(_gl_wnd,WM_SIZE,NULL,NULL);
+	SendMessage(_control_wnd,WM_SIZE,(WPARAM)NULL,(WPARAM)NULL);
+	SendMessage(_gl_wnd,WM_SIZE,(WPARAM)NULL,(WPARAM)NULL);
 }
 
 void CubeInterface::resize_control_window()
 {
-	RECT frame_rect, control_rect;
+	RECT frame_rect, control_rect, reset_rect;
 	get_rects(&frame_rect,NULL,&control_rect);
 	MoveWindow(_control_wnd,0,0,control_rect.right,frame_rect.bottom,TRUE);
 }
@@ -396,10 +397,43 @@ void CubeInterface::process_button_click(LPARAM lParam)
 	{
 		//call Brian's solution
 	}
+	else if(_center_btn_wnd == (HWND)lParam)
+		center_cube();
 	else if(_reset_btn_wnd == (HWND)lParam)
+		reset();
+
+	SetFocus(_gl_wnd);
+}
+
+void CubeInterface::process_key(WPARAM wParam)
+{
+	HWND radio;
+	int color;
+	switch(wParam)
 	{
-		clear_colors();
+	case KEY_B:
+		radio = _blue_radio_wnd; color = C_BLUE;
+		break;
+	case KEY_G:
+		radio = _green_radio_wnd; color = C_GREEN;
+		break;
+	case KEY_O:
+		radio = _orange_radio_wnd; color = C_ORANGE;
+		break;
+	case KEY_R:
+		radio = _red_radio_wnd; color = C_RED;
+		break;
+	case KEY_W:
+		radio = _white_radio_wnd; color = C_WHITE;
+		break;
+	case KEY_Y:
+		radio = _yellow_radio_wnd; color = C_YELLOW;
+		break;
+	default:
+		return;
 	}
+	SendMessage(radio,BM_CLICK,(WPARAM)NULL,(WPARAM)NULL);
+	_selected_color.set_color(color);
 }
 
 void CubeInterface::get_rects(RECT *frame_rect, RECT *gl_rect, RECT *control_rect)
@@ -529,8 +563,6 @@ void CubeInterface::gl_select(int x, int y)
 		process_hits(hits,buff);
 
 	glMatrixMode(GL_MODELVIEW);
-
-	draw_gl_scene();
 }
 
 void CubeInterface::process_hits(GLint hits, GLuint buff[])
@@ -550,17 +582,40 @@ void CubeInterface::process_hits(GLint hits, GLuint buff[])
 		}
 		ptr += names+2;
 	}
+	switch(*ptrNames)
+	{
+	case 13:
+	case 16:
+	case 19:
+	case 22:
+	case 40:
+	case 49:
+		return;
+	}
 	_cells[*ptrNames].set_color(_selected_color);
 }
 
-void CubeInterface::clear_colors()
+void CubeInterface::reset()
 {
 	for(int i = 0; i < 54; i++)
 	{
-		_cells[i].reset_color();
+		switch(i)
+		{
+		case 13:
+		case 16:
+		case 19:
+		case 22:
+		case 40:
+		case 49:
+			break;
+		default:
+			_cells[i].set_color(C_GREY);
+		}
 	}
-	draw_gl_scene();
+	center_cube();
 }
+
+void CubeInterface::center_cube() { _xrot = 0; _yrot = 0; }
 
 void CubeInterface::set_up_gl_context()
 {
@@ -693,6 +748,12 @@ void CubeInterface::init_cells()
 
 		count++;
 	}
+	_cells[13].set_color(C_RED);
+	_cells[16].set_color(C_YELLOW);
+	_cells[19].set_color(C_ORANGE);
+	_cells[22].set_color(C_WHITE);
+	_cells[40].set_color(C_BLUE);
+	_cells[49].set_color(C_GREEN);
 }
 
 CubeInterface::CubeInterface(HINSTANCE hInstance) : _hInstance(hInstance)
@@ -712,17 +773,15 @@ int CubeInterface::msg_loop()
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,0, 0, 800, 600,
 		NULL, NULL, GetModuleHandle(NULL), this);
 
-	set_up_gl_context();
-
 	size_frame_window();
 
-	SendMessage(_blue_radio_wnd,BM_CLICK ,NULL,NULL);
-	_selected_color.set_color(C_BLUE);
+	SetFocus(_gl_wnd);
 
 	while(GetMessage(&msg, NULL, 0, 0) > 0)
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+		draw_gl_scene();
 	}
 
 	return (int)msg.message;
