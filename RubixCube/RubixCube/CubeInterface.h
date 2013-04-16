@@ -1,3 +1,9 @@
+/*
+* @ Author: Alex Veit
+* 
+* This code defines a visual interface class of a ribik's cube
+*	
+*/
 #ifndef _CUBE_INTERFACE_
 #define _CUBE_INTERFACE_
 #include <windows.h>
@@ -17,19 +23,30 @@ class CubeInterface
 #define KEY_W	0x57
 #define KEY_Y	0x59
 
-	//struct to hold RGB values
-	struct cell_color
+	//class to hold RGB values
+	class cell_color
 	{
 	#define C_BLUE		0
-	#define C_YELLOW	1
-	#define C_GREEN		2
-	#define C_WHITE		3
-	#define C_RED		4
-	#define C_ORANGE	5
+	#define C_GREEN		1
+	#define C_ORANGE	2
+	#define C_RED		3
+	#define C_WHITE		4
+	#define C_YELLOW	5
 	#define C_GREY		6
 
 		float r,g,b;
-		cell_color() : r(0.5f), g(0.5f), b(0.5f) {}
+		int _color;
+
+	public:
+		cell_color() : r(0.5f), g(0.5f), b(0.5f), _color(C_GREY) {}
+
+		float get_r() { return r; }
+
+		float get_g() { return g; }
+
+		float get_b() { return b; }
+
+		int get_color() { return _color; }
 
 		void set_color(const cell_color& c);
 
@@ -53,6 +70,8 @@ class CubeInterface
 		cell_color _c;
 	public:
 		cell() : _fx(0.0f), _fy(0.0f), _fz(0.0f), _name(0) {}
+
+		int get_color() { return _c.get_color(); }
 
 		//each cell will be addigned a name (int value) when it is drawn
 		//do we can identify it when the user clicks on it
@@ -124,64 +143,69 @@ class CubeInterface
 
 	//static callback function to OpenGL frame window messages
 	static LRESULT CALLBACK WndProcGL (HWND gl_wnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-	//Register window classes so they can be instantiated in the future
-	void reg_win_class();
-
+	
+	void center_cube();
+	
 	//create control and GL window
 	void create_child_windows(HWND frame_wnd);
 
 	//create radio and push buttons
 	void create_controls(HWND control_wnd);
-
-	void mouse_move_proc(WPARAM wParam, LPARAM lParam);
-
-	//send resizing message to control and OpenGL windows
-	void size_frame_window();
-
-	//resize control window
-	void resize_control_window();
-
-	//identify witch radio button was pushed
-	void process_button_click(LPARAM lParam);
-
-	void process_key(WPARAM wParam);
-
+	
+	//render the cube on the screen
+	void draw_gl_scene();
+	
 	//get rectangle for client area of my 3 windows
 	void get_rects(RECT *frame_rect, RECT *gl_rect, RECT *control_rect);
+	
+	//identify what cell has been clicked
+	void gl_select(int x, int y);
 
-	//resize OpenGL window
-	void resize_gl_window();
-
-	//resize GL viewport
-	void resize_gl_scene(RECT frame_rect, RECT control_rect);
+	//initialize cells with their respective coordinates
+	void init_cells();
 
 	//initialyze a few openGL parameters
 	//I just copyed this from a tutorial
 	void init_gl();
 
-	//render the cube on the screen
-	void draw_gl_scene();
-
-	//identify what cell has been clicked
-	void gl_select(int x, int y);
-
+	void mouse_move_proc(WPARAM wParam, LPARAM lParam);
+	
+	//identify witch radio button was pushed
+	void process_button_click(LPARAM lParam);
+	
+	//process hits after GL selection mode
+	//basicaly identify witch cell the user clicked
 	void process_hits(GLint hits, GLuint buff[]);
 
-	//resets all cells to color gray
-	void reset();
-
-	void center_cube();
-
-	//this is where we tell openGL in which device context
-	//the rendering will take place
-	void set_up_gl_context();
+	//process keyboard events
+	void process_key(WPARAM wParam);
+	
+	//Register window classes so they can be instantiated in the future
+	void reg_win_class();
 
 	//release handles
 	void release_resources();
 
-	//initialize cells with their respective coordinates
-	void init_cells();
+	//resets all cells to color gray
+	void reset();
+
+	//resize control window
+	void resize_control_window();
+	
+	//resize GL viewport
+	void resize_gl_scene(RECT frame_rect, RECT control_rect);
+
+	//resize OpenGL window
+	void resize_gl_window();
+	
+	//this is where we tell openGL in which device context
+	//the rendering will take place
+	void set_up_gl_context();
+
+	//send resizing message to control and OpenGL windows
+	void size_frame_window();
+	
+	bool validade_color_count();
 
 public:
 
