@@ -3,9 +3,9 @@
 #include <string>
 #include <stdexcept>
 #include <vector>
-//#include "Cube.h"
-//#include "Rotator.h"
-//#include "Block.h"
+#include "Cube.h"
+#include "Rotator.h"
+#include "Block.h"
 
 using namespace std;
 

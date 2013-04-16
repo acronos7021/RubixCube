@@ -616,6 +616,14 @@ void CubeInterface::process_hits(GLint hits, GLuint buff[])
 	case 49:
 		return;
 	}
+	int color_count = 0;
+	for(int i = 0; i < 54; i++)
+	{
+		if(_cells[i].get_color() == _selected_color.get_color())
+			color_count++;
+		if(color_count == 9)
+			return;
+	}
 	_cells[*ptrNames].set_color(_selected_color);
 }
 
