@@ -61,12 +61,35 @@ void CubeInterface::cell_color::set_color(int c)
 	_color = c;
 }
 
+CubeInterface::cell::cell(const cell &c)
+{
+	_fx = c._fx;
+	_fy = c._fy;
+	_fz = c._fz;
+	_name = c._name;
+	_pos = c._pos;
+	_side = c._side;
+	_color = c._color;
+}
+
+CubeInterface::cell& CubeInterface::cell::operator=(const cell &c)
+{
+	_fx = c._fx;
+	_fy = c._fy;
+	_fz = c._fz;
+	_name = c._name;
+	_pos = c._pos;
+	_side = c._side;
+	_color = c._color;
+	return *this;
+}
+
 void CubeInterface::cell::draw_flat()
 {
 	glLoadName(_name);
 	glPushMatrix();
 		glTranslatef(_fx,_fy,_fz);
-		glColor3f(_c.get_r(),_c.get_g(),_c.get_b());
+		glColor3f(_color.get_r(),_color.get_g(),_color.get_b());
 		glBegin(GL_QUADS);
 			glVertex3f(-1.0f, 1.0f, 0.0f);
 			glVertex3f( 1.0f, 1.0f, 0.0f);
@@ -140,7 +163,7 @@ void CubeInterface::cell::draw_3d()
 		}
 
 		
-		glColor3f(_c.get_r(),_c.get_g(),_c.get_b());
+		glColor3f(_color.get_r(),_color.get_g(),_color.get_b());
 		glBegin(GL_QUADS);
 			glVertex3f(-1.0f, 1.0f, 0.0f);
 			glVertex3f( 1.0f, 1.0f, 0.0f);
@@ -268,7 +291,11 @@ LRESULT CALLBACK CubeInterface::WndProcGL (HWND gl_wnd, UINT message, WPARAM wPa
 		ci->gl_select(LOWORD(lParam),HIWORD(lParam));
 		break;
 	case WM_KEYDOWN:
+		ci->_keys[wParam] = true;
 		ci->process_key(wParam);
+		break;
+	case WM_KEYUP:
+		ci->_keys[wParam] = false;
 		break;
 	}
 
@@ -337,6 +364,15 @@ void CubeInterface::create_controls(HWND control_wnd)
 	 _reset_btn_wnd = CreateWindow ("BUTTON", "Reset",
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,10, 280, 100, 30,
 		control_wnd, NULL, _hInstance, NULL);
+}
+
+void CubeInterface::do_ctrl_z()
+{
+	if(_keys[KEY_Z] && _ctrl_z.size() > 0)
+	{
+		_cells[_ctrl_z.back()._pos] = _ctrl_z.back()._cell;
+		_ctrl_z.pop_back();
+	}
 }
 
 void CubeInterface::draw_gl_scene()
@@ -624,7 +660,8 @@ void CubeInterface::process_hits(GLint hits, GLuint buff[])
 		if(color_count == 9)
 			return;
 	}
-	_cells[*ptrNames].set_color(_selected_color);
+	_ctrl_z.push_back(ctrl_z_struct(*ptrNames,_cells[*ptrNames]));
+	_cells[*ptrNames].set_color(_selected_color);	
 }
 
 void CubeInterface::process_key(WPARAM wParam)
@@ -651,6 +688,9 @@ void CubeInterface::process_key(WPARAM wParam)
 	case KEY_Y:
 		radio = _yellow_radio_wnd; color = C_YELLOW;
 		break;
+	case KEY_Z:
+		do_ctrl_z();
+		return;
 	default:
 		return;
 	}
@@ -714,6 +754,7 @@ void CubeInterface::reset()
 			_cells[i].set_color(C_GREY);
 		}
 	}
+	_ctrl_z.clear();
 	center_cube();
 }
 
@@ -836,6 +877,7 @@ CubeInterface::CubeInterface(HINSTANCE hInstance) : _hInstance(hInstance)
 {
 	_xrot = _yrot = 0;
 	_mouse_x = _mouse_y = 0;
+	ZeroMemory(&_keys,sizeof(bool)*256);
 	reg_win_class();
 	init_cells();
 }

@@ -8,6 +8,7 @@
 #define _CUBE_INTERFACE_
 #include <windows.h>
 #include <gl\glu.h>
+#include <vector>
 
 class CubeInterface
 {
@@ -16,12 +17,14 @@ class CubeInterface
 #define CUBE_CONTROLS_WIN_CLASS "CUBE_CONTROLS_WIN_CLASS"
 #define CUBE_GL_WIN_CLASS		"CUBE_GL_WIN_CLASS"
 
-#define KEY_B	0x42
-#define KEY_G	0x47
-#define KEY_O	0x4F
-#define KEY_R	0x52
-#define KEY_W	0x57
-#define KEY_Y	0x59
+#define KEY_B		0x42
+#define KEY_G		0x47
+#define KEY_O		0x4F
+#define KEY_R		0x52
+#define KEY_W		0x57
+#define KEY_Y		0x59
+#define KEY_Z		0x5A
+#define KEY_CTRL	0x11
 
 	//class to hold RGB values
 	class cell_color
@@ -53,6 +56,7 @@ class CubeInterface
 		void set_color(int c);
 	};
 
+	//represents a cell in the cube
 	class cell
 	{
 	#define LEFT_SIDE	0
@@ -67,19 +71,23 @@ class CubeInterface
 		int _side;
 		int _pos;
 
-		cell_color _c;
+		cell_color _color;
 	public:
 		cell() : _fx(0.0f), _fy(0.0f), _fz(0.0f), _name(0) {}
 
-		int get_color() { return _c.get_color(); }
+		cell(const cell &c);
+
+		int get_color() { return _color.get_color(); }
+
+		cell& operator=(const cell &c);
 
 		//each cell will be addigned a name (int value) when it is drawn
 		//do we can identify it when the user clicks on it
 		void set_name(int name) { _name = name; }
 
-		void set_color(cell_color c) { _c.set_color(c); }
+		void set_color(cell_color c) { _color.set_color(c); }
 
-		void set_color(int c) { _c.set_color(c); }
+		void set_color(int c) { _color.set_color(c); }
 
 		//set drawing coordinates for flat x y z
 		void set_flat_coord(float x, float y, float z) { _fx = x; _fy = y; _fz = z; }
@@ -96,8 +104,18 @@ class CubeInterface
 
 	};
 
+	struct ctrl_z_struct
+	{
+		int _pos;
+		cell _cell;
+
+		ctrl_z_struct(int p, cell c): _pos(p), _cell(c) {}
+	};
+
+	//keeps rotation values of mouse
 	GLfloat _xrot, _yrot;
 
+	//keeps x,y coordinates of mouse
 	int _mouse_x, _mouse_y;
 
 	//handle to module instance
@@ -135,6 +153,10 @@ class CubeInterface
 	//cube cells
 	cell _cells[54];
 
+	std::vector<ctrl_z_struct> _ctrl_z;
+
+	bool _keys[256];
+
 	//static callback function to process frame window messages
 	static LRESULT CALLBACK WndProcFrame (HWND frame_wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -152,6 +174,8 @@ class CubeInterface
 	//create radio and push buttons
 	void create_controls(HWND control_wnd);
 	
+	void do_ctrl_z();
+
 	//render the cube on the screen
 	void draw_gl_scene();
 	
