@@ -209,9 +209,12 @@ LRESULT CALLBACK CubeInterface::WndProcFrame (HWND frame_wnd, UINT message, WPAR
 		PostQuitMessage (0);
 		return 0;
 
+	case WM_ERASEBKGND:
+		return TRUE;
+
 	case WM_SIZE:
 		ci->size_frame_window();
-		return 0;
+		break;
 	}
 
 	return DefWindowProc(frame_wnd, message, wParam, lParam);
@@ -242,7 +245,7 @@ LRESULT CALLBACK CubeInterface::WndProcControls (HWND control_wnd, UINT message,
 	{
 	case WM_SIZE:
 		ci->resize_control_window();
-		return 0;
+		break;
 
 	case WM_COMMAND:
 		switch(HIWORD(wParam))
@@ -297,6 +300,13 @@ LRESULT CALLBACK CubeInterface::WndProcGL (HWND gl_wnd, UINT message, WPARAM wPa
 	case WM_KEYUP:
 		ci->_keys[wParam] = false;
 		break;
+
+	case WM_PAINT:
+		ci->draw_gl_scene();
+		break;
+
+	case WM_ERASEBKGND:
+		return TRUE;
 	}
 
 	return DefWindowProc(gl_wnd, message, wParam, lParam);
