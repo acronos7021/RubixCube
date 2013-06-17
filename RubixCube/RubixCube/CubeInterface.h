@@ -104,12 +104,12 @@ class CubeInterface
 
 	};
 
-	struct ctrl_z_struct
+	struct ctrl_struct
 	{
 		int _pos;
 		cell _cell;
 
-		ctrl_z_struct(int p, cell c): _pos(p), _cell(c) {}
+		ctrl_struct(int p, cell c): _pos(p), _cell(c) {}
 	};
 
 	//keeps rotation values of mouse
@@ -153,7 +153,7 @@ class CubeInterface
 	//cube cells
 	cell _cells[54];
 
-	std::vector<ctrl_z_struct> _ctrl_z;
+	std::vector<ctrl_struct> _ctrl_z;
 
 	bool _keys[256];
 

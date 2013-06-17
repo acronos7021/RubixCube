@@ -670,7 +670,7 @@ void CubeInterface::process_hits(GLint hits, GLuint buff[])
 		if(color_count == 9)
 			return;
 	}
-	_ctrl_z.push_back(ctrl_z_struct(*ptrNames,_cells[*ptrNames]));
+	_ctrl_z.push_back(ctrl_struct(*ptrNames,_cells[*ptrNames]));
 	_cells[*ptrNames].set_color(_selected_color);	
 }
 
